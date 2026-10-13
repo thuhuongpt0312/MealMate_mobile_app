@@ -1,58 +1,59 @@
-# 04 – Cấu trúc code
+# 04 – Cấu trúc code (Kotlin + Jetpack Compose)
 
-> Công nghệ dưới đây là **đề xuất**. Cần xác nhận với giảng viên môn LTTBDĐ (Flutter, React Native hay Android native) trước khi bắt đầu.
+**Ngôn ngữ:** Kotlin · **UI:** Jetpack Compose + Material 3 · **IDE:** Android Studio · **Kiến trúc:** MVVM
 
-## Công nghệ đề xuất: Flutter
-| Hạng mục | Công cụ |
-|---|---|
-| Ngôn ngữ / framework | Dart + Flutter |
-| Quản lý trạng thái | Provider (đơn giản) hoặc Riverpod |
-| Điều hướng | go_router |
-| Lưu dữ liệu cục bộ | shared_preferences hoặc sqflite |
-| Dữ liệu mẫu | File JSON trong `assets/data/` |
-| Font | Google Fonts (google_fonts) |
-| Công cụ | Android Studio hoặc VS Code, Android Emulator, Git/GitHub Desktop, Figma |
-
-## Cây thư mục
+## 1. Cấu trúc thư mục
 ```
-lib/
-├── main.dart
-├── app/
-│   ├── router.dart          # điều hướng
-│   └── theme.dart           # màu, font, bo góc lấy từ Figma
-├── core/
-│   └── widgets/             # nút, ô nhập, chip, thanh điều hướng dưới (C)
+app/src/main/java/vn/edu/uth/mealmate/
+├── MainActivity.kt
+├── navigation/            Routes.kt, MealMateApp.kt (NavHost + thanh đáy)
 ├── data/
-│   ├── models/              # Recipe, MealPlan, ShoppingItem...
-│   └── repositories/        # đọc JSON / lưu cục bộ
-└── features/
-    ├── onboarding/          # S01–S03 (A)
-    ├── auth/                # S04, S15 (A)
-    ├── setup/               # S05–S07 (A)
-    ├── profile/             # S14 (A)
-    ├── home/                # S08–S09 (B)
-    ├── meal_plan/           # S10, S16, S17 (B)
-    ├── history/             # S13 (B)
-    └── shopping/            # S11–S12 (C)
-assets/
-├── images/
-└── data/
+│   ├── model/             Models.kt (Meal, Ingredient, PantryItem, ShoppingItem...)
+│   ├── sample/            SampleData.kt (dữ liệu mẫu tiếng Việt, VNĐ)
+│   └── (sau này) local/, repository/   Room, DataStore
+├── domain/                ShoppingListBuilder.kt (logic cốt lõi, có unit test)
+├── notifications/         MealMateNotifier.kt (thông báo nhắc nhở)
+├── util/                  Format.kt (formatVnd)
+└── ui/
+    ├── theme/             Color.kt, Theme.kt
+    ├── components/        PrimaryButton, PlaceholderScreen, (thêm thẻ, chip, ô nhập...)
+    └── screens/           onboarding, auth, setup, home, plan, mealplan, shopping,
+                           pantry, nutrition, favorites, history, notifications, stats, profile
 ```
-Mỗi feature chia: `screens/`, `widgets/`, `providers/`.
+Mỗi màn hình sau này gồm `XScreen.kt` (giao diện) và `XViewModel.kt` (trạng thái, dùng `StateFlow`).
 
-## Quy ước đặt tên
-- File: `snake_case`, ví dụ `s10_meal_plan_screen.dart`.
-- Có mã màn hình trong tên file để dễ đối chiếu với Figma.
-- Tên frame Figma cũng đặt theo mã: `S10 – Meal Plan`.
+## 2. Thư viện
+| Giai đoạn | Thư viện | Dùng cho |
+|---|---|---|
+| Có sẵn trong khung | Navigation Compose, Material Icons Extended | Điều hướng, icon |
+| Giai đoạn 3–4 | ViewModel Compose, Room, DataStore | Trạng thái, lưu thực đơn / tủ bếp / cài đặt |
+| Giai đoạn 4 | WorkManager | Đặt lịch nhắc bữa ăn, đi chợ, cảnh báo ngân sách |
+| Giai đoạn 2–3 | Coil | Hiển thị ảnh món |
+| Giai đoạn 3 | Biểu đồ: tự vẽ bằng Canvas hoặc thư viện Vico | S11 Dinh dưỡng, S15 Thống kê |
 
-## Thiết kế token (điền từ Figma)
-Mở Figma → chọn đối tượng → Dev Mode / Inspect để lấy giá trị chính xác.
+## 3. Logic cốt lõi
+`ShoppingListBuilder.build(meals, servings, pantry)`:
+1. Gộp nguyên liệu trùng tên và đơn vị qua tất cả các bữa trong thực đơn.
+2. Trừ lượng đang có trong tủ bếp.
+3. Chỉ giữ phần còn thiếu và tính tiền → đây là danh sách mua sắm ở S09.
+
+Chạy test: `./gradlew test` hoặc chuột phải `ShoppingListBuilderTest` → Run.
+
+## 4. Quy ước
+- Tên composable màn hình kết thúc bằng `Screen`; tham số điều hướng truyền qua lambda (`onBack`, `onCreatePlan`...), không truyền `NavController` xuống màn hình con.
+- Chữ hiển thị đưa vào `res/values/strings.xml` khi hoàn thiện (hiện đang viết trực tiếp cho nhanh).
+- Tiền luôn dùng `formatVnd(...)`, không tự ghép chuỗi.
+- Màu lấy từ `AppColors`, không viết mã màu trực tiếp trong màn hình.
+
+## 5. Design tokens (ước lượng, cần đối chiếu Figma Dev Mode)
 | Token | Giá trị | Dùng cho |
 |---|---|---|
-| Màu chính (xanh lá đậm) | | Nút, tab đang chọn |
-| Màu nền (kem) | | Nền màn hình |
-| Màu chữ chính | | Tiêu đề |
-| Màu chữ phụ | | Mô tả |
-| Viền / thẻ nhạt | | Thẻ, ô nhập |
-| Font | | |
-| Bo góc nút / thẻ | | |
+| Cream | `#FBF8F1` | Nền |
+| Surface | `#FFFEFA` | Thẻ, ô nhập |
+| Green | `#3A7D5C` | Nút chính |
+| GreenDark | `#255B42` | Banner |
+| GreenSoft | `#E8F1EB` | Nền icon, chip |
+| Orange | `#E8892B` | Cột vượt ngân sách |
+| Ink / Muted / Line | `#1B2A22` / `#6B7A72` / `#E6E4DA` | Chữ chính / chữ phụ / viền |
+
+Font: Be Vietnam Pro (hoặc font đúng với Figma) – thêm file font vào `res/font` và cấu hình trong `ui/theme`.
