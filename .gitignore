@@ -1,12 +1,12 @@
-# Flutter / Dart
-.dart_tool/
-.packages
-build/
-.flutter-plugins
-.flutter-plugins-dependencies
 *.iml
-.idea/
-.vscode/
+.gradle/
+/local.properties
+/.idea/
 .DS_Store
-local.properties
+/build/
+/captures
+.externalNativeBuild
+.cxx
+app/build/
+*.apk
 *.log
