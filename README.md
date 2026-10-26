@@ -21,6 +21,14 @@
 | [03 – Quy trình làm nhóm](docs/03-quy-trinh-nhom.md) | Chia việc, nhánh Git, quy tắc PR |
 | [04 – Cấu trúc code](docs/04-cau-truc-code.md) | Cây thư mục và công nghệ đề xuất |
 | [05 – Đối chiếu UI](docs/05-doi-chieu-ui.md) | Bảng đối chiếu Figma và app thật |
+| [Backend API](backend/README.md) | Server Node.js, API cho app và admin dashboard |
+
+## Chạy backend
+```bash
+cd backend
+npm install
+npm run dev   # http://localhost:3000, từ emulator gọi http://10.0.2.2:3000
+```
 
 ## Tiến độ theo tuần
 | Tuần | Nội dung | Trạng thái |
