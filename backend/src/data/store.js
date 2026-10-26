@@ -44,7 +44,7 @@ export const store = {
     };
     state.users.push(user);
     state.preferences.set(user.id, defaultPreferences());
-    state.pantry.set(user.id, seedPantry());
+    state.pantry.set(user.id, seedPantry().map((item) => ({ id: newId(), ...item })));
     return user;
   },
   updateUser(id, patch) {

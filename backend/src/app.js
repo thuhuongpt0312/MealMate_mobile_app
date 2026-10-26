@@ -3,6 +3,8 @@ import { config } from './config.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.js';
 import healthRoutes from './routes/health.js';
+import meRoutes from './routes/me.js';
+import recipeRoutes from './routes/recipes.js';
 
 export function createApp() {
   const app = express();
@@ -19,6 +21,8 @@ export function createApp() {
 
   app.use('/api/health', healthRoutes);
   app.use('/api/auth', authRoutes);
+  app.use('/api/me', meRoutes);
+  app.use('/api/recipes', recipeRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
