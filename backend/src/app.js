@@ -1,6 +1,7 @@
 import express from 'express';
 import { config } from './config.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
+import adminRoutes from './routes/admin.js';
 import authRoutes from './routes/auth.js';
 import healthRoutes from './routes/health.js';
 import mealPlanRoutes from './routes/mealPlans.js';
@@ -25,6 +26,7 @@ export function createApp() {
   app.use('/api/me', meRoutes);
   app.use('/api/recipes', recipeRoutes);
   app.use('/api/meal-plans', mealPlanRoutes);
+  app.use('/api/admin', adminRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
