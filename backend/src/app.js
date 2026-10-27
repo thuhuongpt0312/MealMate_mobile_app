@@ -21,6 +21,16 @@ export function createApp() {
     next();
   });
 
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'ok',
+      service: 'mealmate-backend',
+      message: 'MealMate Backend API đang chạy bình thường',
+      health: '/api/health',
+    });
+  });
+  app.get('/health', (req, res) => res.redirect('/api/health'));
+
   app.use('/api/health', healthRoutes);
   app.use('/api/auth', authRoutes);
   app.use('/api/me', meRoutes);
