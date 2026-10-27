@@ -1,0 +1,19 @@
+{
+  "name": "mealmate-backend",
+  "version": "0.1.0",
+  "description": "Backend REST API cho ứng dụng MealMate và trang quản trị (admin dashboard)",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

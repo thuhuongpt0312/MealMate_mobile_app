@@ -22,6 +22,10 @@ app/src/main/java/vn/edu/uth/mealmate/
 ```
 Mỗi màn hình sau này gồm `XScreen.kt` (giao diện) và `XViewModel.kt` (trạng thái, dùng `StateFlow`).
 
+**Backend** nằm ở thư mục `backend/` (Node.js + Express), phục vụ cả app và trang quản trị.
+Danh sách API và cách chạy: [`backend/README.md`](../backend/README.md).
+`backend/src/services/shoppingListBuilder.js` là bản JS của `ShoppingListBuilder.kt` – sửa logic một bên thì sửa cả bên kia.
+
 ## 2. Thư viện
 | Giai đoạn | Thư viện | Dùng cho |
 |---|---|---|
