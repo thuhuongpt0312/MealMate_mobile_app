@@ -16,6 +16,7 @@ import vn.edu.uth.mealmate.data.remote.RegisterRequest
 import vn.edu.uth.mealmate.data.remote.ShoppingItemDto
 import vn.edu.uth.mealmate.data.remote.ShoppingListDto
 import vn.edu.uth.mealmate.data.remote.UserDto
+import vn.edu.uth.mealmate.data.session.SessionManager
 import vn.edu.uth.mealmate.data.remote.toDomain
 import vn.edu.uth.mealmate.data.remote.toUserErrorMessage
 
@@ -27,12 +28,12 @@ class MealMateRepository private constructor() {
     val currentUser: StateFlow<UserDto?> = _currentUser.asStateFlow()
 
     val isLoggedIn: Boolean
-        get() = ApiClient.token != null
+        get() = SessionManager.isLoggedIn
 
     suspend fun login(email: String, password: String): Result<UserDto> {
         return try {
             val response = api.login(LoginRequest(email = email, password = password))
-            ApiClient.token = response.token
+            SessionManager.save(response.token)
             _currentUser.value = response.user
             Result.success(response.user)
         } catch (e: Throwable) {
@@ -43,7 +44,7 @@ class MealMateRepository private constructor() {
     suspend fun register(name: String, email: String, password: String): Result<UserDto> {
         return try {
             val response = api.register(RegisterRequest(name = name, email = email, password = password))
-            ApiClient.token = response.token
+            SessionManager.save(response.token)
             _currentUser.value = response.user
             Result.success(response.user)
         } catch (e: Throwable) {
@@ -54,11 +55,11 @@ class MealMateRepository private constructor() {
     suspend fun logout(): Result<Unit> {
         return try {
             runCatching { api.logout() }
-            ApiClient.token = null
+            SessionManager.clear()
             _currentUser.value = null
             Result.success(Unit)
         } catch (e: Throwable) {
-            ApiClient.token = null
+            SessionManager.clear()
             _currentUser.value = null
             Result.success(Unit)
         }

@@ -13,7 +13,12 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavHostController
@@ -23,6 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import vn.edu.uth.mealmate.data.session.SessionManager
 import vn.edu.uth.mealmate.ui.screens.auth.RegisterScreen
 import vn.edu.uth.mealmate.ui.screens.favorites.FavoritesScreen
 import vn.edu.uth.mealmate.ui.screens.history.HistoryScreen
@@ -66,6 +72,19 @@ fun MealMateApp() {
     val current = nav.currentBackStackEntryAsState().value?.destination?.route
     val showBottomBar = tabs.any { it.route == current }
 
+    // Đã đăng nhập từ lần trước thì vào thẳng Trang chủ
+    val startDestination = remember { if (SessionManager.isLoggedIn) Routes.HOME else Routes.ONBOARDING }
+
+    // Đăng xuất hoặc token hết hạn (401) → quay về màn đăng nhập, xóa toàn bộ back stack
+    val token by SessionManager.token.collectAsState()
+    var wasLoggedIn by remember { mutableStateOf(token != null) }
+    LaunchedEffect(token) {
+        if (token == null && wasLoggedIn) {
+            nav.navigate(Routes.REGISTER) { popUpTo(nav.graph.id) { inclusive = true } }
+        }
+        wasLoggedIn = token != null
+    }
+
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
@@ -84,7 +103,7 @@ fun MealMateApp() {
     ) { padding ->
         NavHost(
             navController = nav,
-            startDestination = Routes.ONBOARDING,
+            startDestination = startDestination,
             modifier = Modifier.padding(padding),
         ) {
             // --- Bắt đầu ---

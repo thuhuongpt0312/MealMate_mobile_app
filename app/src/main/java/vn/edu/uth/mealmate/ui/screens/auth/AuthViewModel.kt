@@ -11,6 +11,7 @@ import vn.edu.uth.mealmate.data.remote.LoginRequest
 import vn.edu.uth.mealmate.data.remote.RegisterRequest
 import vn.edu.uth.mealmate.data.remote.UserDto
 import vn.edu.uth.mealmate.data.remote.toUserErrorMessage
+import vn.edu.uth.mealmate.data.session.SessionManager
 
 sealed interface AuthUiState {
     data object Idle : AuthUiState
@@ -29,7 +30,7 @@ class AuthViewModel : ViewModel() {
             _uiState.value = AuthUiState.Loading
             try {
                 val res = ApiClient.api.login(LoginRequest(email, password))
-                ApiClient.token = res.token
+                SessionManager.save(res.token)
                 _uiState.value = AuthUiState.Success(res.user)
                 onSuccess()
             } catch (e: Throwable) {
@@ -43,7 +44,7 @@ class AuthViewModel : ViewModel() {
             _uiState.value = AuthUiState.Loading
             try {
                 val res = ApiClient.api.register(RegisterRequest(name, email, password))
-                ApiClient.token = res.token
+                SessionManager.save(res.token)
                 _uiState.value = AuthUiState.Success(res.user)
                 onSuccess()
             } catch (e: Throwable) {

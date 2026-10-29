@@ -5,21 +5,24 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import vn.edu.uth.mealmate.BuildConfig
+import vn.edu.uth.mealmate.data.session.SessionManager
 
 object ApiClient {
     /** Lấy từ BuildConfig (xem app/build.gradle.kts), luôn có dấu / ở cuối. */
     val BASE_URL: String = BuildConfig.API_BASE_URL
 
-    /** Gán sau khi đăng nhập, lưu thêm vào DataStore để mở lại app vẫn còn. */
-    @Volatile
-    var token: String? = null
-
     private val client = OkHttpClient.Builder()
         .addInterceptor { chain ->
+            val token = SessionManager.token.value
             val request = chain.request().newBuilder().apply {
                 token?.let { header("Authorization", "Bearer $it") }
             }.build()
-            chain.proceed(request)
+            val response = chain.proceed(request)
+            // Token hết hạn hoặc server khởi động lại (dữ liệu in-memory) → xóa phiên để app quay về đăng nhập
+            if (response.code == 401 && token != null && token == SessionManager.token.value) {
+                SessionManager.clear()
+            }
+            response
         }
         .apply {
             // Chỉ log request ở bản debug để không lộ token/mật khẩu trong logcat của bản release

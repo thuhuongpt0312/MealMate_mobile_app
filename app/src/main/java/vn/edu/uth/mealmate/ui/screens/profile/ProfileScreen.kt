@@ -42,7 +42,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import vn.edu.uth.mealmate.data.remote.ApiClient
+import vn.edu.uth.mealmate.data.session.SessionManager
 import vn.edu.uth.mealmate.ui.theme.AppColors
 
 @Composable
@@ -232,7 +232,7 @@ fun ProfileScreen(
             ProfileMenuItem(
                 icon = Icons.AutoMirrored.Outlined.Logout,
                 title = "Đăng xuất",
-                onClick = { ApiClient.token = null },
+                onClick = { SessionManager.clear() },
                 isDestructive = true,
             )
         }

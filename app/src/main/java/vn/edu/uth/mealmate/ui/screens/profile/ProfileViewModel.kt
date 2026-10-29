@@ -10,6 +10,7 @@ import vn.edu.uth.mealmate.data.remote.ApiClient
 import vn.edu.uth.mealmate.data.remote.PreferencesDto
 import vn.edu.uth.mealmate.data.remote.UserDto
 import vn.edu.uth.mealmate.data.remote.toUserErrorMessage
+import vn.edu.uth.mealmate.data.session.SessionManager
 
 sealed interface ProfileUiState {
     data object Loading : ProfileUiState
@@ -28,7 +29,7 @@ class ProfileViewModel : ViewModel() {
     }
 
     fun loadProfile() {
-        if (ApiClient.token == null) {
+        if (!SessionManager.isLoggedIn) {
             _uiState.value = ProfileUiState.LoggedOut
             return
         }
@@ -47,7 +48,7 @@ class ProfileViewModel : ViewModel() {
     fun logout(onLoggedOut: () -> Unit = {}) {
         viewModelScope.launch {
             runCatching { ApiClient.api.logout() }
-            ApiClient.token = null
+            SessionManager.clear()
             _uiState.value = ProfileUiState.LoggedOut
             onLoggedOut()
         }
