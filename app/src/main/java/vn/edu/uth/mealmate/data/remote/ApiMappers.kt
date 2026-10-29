@@ -63,7 +63,7 @@ fun Throwable.toUserErrorMessage(): String {
                 "Lỗi phản hồi từ máy chủ (${code()})"
             }
         }
-        is IOException -> "Không thể kết nối đến máy chủ. Vui lòng kiểm tra server đang chạy ở http://10.0.2.2:3000."
+        is IOException -> "Không thể kết nối đến máy chủ. Kiểm tra backend đang chạy ở ${ApiClient.BASE_URL.removeSuffix("api/")}"
         else -> message ?: "Đã xảy ra lỗi không xác định"
     }
 }

@@ -4,10 +4,11 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import vn.edu.uth.mealmate.BuildConfig
 
 object ApiClient {
-    // Emulator: 10.0.2.2. Điện thoại thật: IP LAN của máy chạy backend. Phải có dấu / ở cuối.
-    private const val BASE_URL = "http://10.0.2.2:3000/api/"
+    /** Lấy từ BuildConfig (xem app/build.gradle.kts), luôn có dấu / ở cuối. */
+    val BASE_URL: String = BuildConfig.API_BASE_URL
 
     /** Gán sau khi đăng nhập, lưu thêm vào DataStore để mở lại app vẫn còn. */
     @Volatile
@@ -20,7 +21,10 @@ object ApiClient {
             }.build()
             chain.proceed(request)
         }
-        .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        .apply {
+            // Chỉ log request ở bản debug để không lộ token/mật khẩu trong logcat của bản release
+            if (BuildConfig.DEBUG) addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        }
         .build()
 
     val api: MealMateApi = Retrofit.Builder()
