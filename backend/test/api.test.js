@@ -38,6 +38,18 @@ async function loginAdmin() {
   return res.body.token;
 }
 
+describe('health', () => {
+  it('trang gốc và /health trả trạng thái server', async () => {
+    const root = await fetch(baseUrl.replace(/\/api$/, '/'));
+    assert.equal(root.status, 200);
+    assert.equal((await root.json()).status, 'ok');
+
+    const health = await fetch(baseUrl.replace(/\/api$/, '/health'));
+    assert.equal(health.status, 200);
+    assert.ok(health.url.endsWith('/api/health'));
+  });
+});
+
 describe('auth', () => {
   it('đăng ký, đăng nhập, xem thông tin, đăng xuất', async () => {
     const reg = await register();
@@ -104,6 +116,16 @@ describe('thực đơn và mua sắm', () => {
 
     const history = await call('GET', '/meal-plans', { token });
     assert.equal(history.body.total, 1);
+  });
+
+  it('chọn số ngày cho thực đơn', async () => {
+    const { token } = await register();
+    const plan = await call('POST', '/meal-plans', { token, body: { startDate: '2026-10-26', days: 3 } });
+    assert.equal(plan.status, 201);
+    assert.equal(plan.body.days.length, 3);
+    assert.equal(plan.body.endDate, '2026-10-28');
+    assert.equal((await call('POST', '/meal-plans', { token, body: { days: 0 } })).status, 400);
+    assert.equal((await call('POST', '/meal-plans', { token, body: { days: 8 } })).status, 400);
   });
 
   it('không xem được thực đơn của người khác', async () => {

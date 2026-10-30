@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { FOOD_GROUPS } from '../data/seed.js';
 import { newId, store } from '../data/store.js';
 import { requireAuth } from '../middleware/auth.js';
-import { generateWeeklyPlan } from '../services/mealPlanner.js';
+import { DAYS_PER_PLAN, MAX_DAYS_PER_PLAN, generateWeeklyPlan } from '../services/mealPlanner.js';
 import { buildShoppingList } from '../services/shoppingListBuilder.js';
 import { HttpError } from '../utils/http.js';
 import { requireFields, requirePositiveNumber } from '../utils/validate.js';
@@ -35,12 +35,16 @@ router.post('/', (req, res) => {
   const prefs = store.getPreferences(req.user.id);
   const servings = req.body?.servings ?? prefs.servings;
   if (!Number.isInteger(servings) || servings < 1 || servings > 10) throw new HttpError(400, 'Số người phải từ 1 đến 10');
+  const days = req.body?.days ?? DAYS_PER_PLAN;
+  if (!Number.isInteger(days) || days < 1 || days > MAX_DAYS_PER_PLAN) {
+    throw new HttpError(400, `Số ngày phải từ 1 đến ${MAX_DAYS_PER_PLAN}`);
+  }
   const startDate = req.body?.startDate ?? new Date().toISOString().slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || Number.isNaN(Date.parse(startDate))) {
     throw new HttpError(400, 'startDate phải có dạng YYYY-MM-DD');
   }
 
-  const generated = generateWeeklyPlan({ recipes: store.listRecipes(), servings, avoid: prefs.avoid, startDate });
+  const generated = generateWeeklyPlan({ recipes: store.listRecipes(), servings, avoid: prefs.avoid, startDate, days });
   if (!generated.days[0].meals.length) throw new HttpError(422, 'Không còn món phù hợp với danh sách món cần tránh');
 
   const plan = store.addMealPlan({

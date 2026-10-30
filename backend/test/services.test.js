@@ -47,6 +47,13 @@ describe('generateWeeklyPlan', () => {
     assert.equal(plan.totalCost, 117_000 * 2 * 7);
   });
 
+  it('tạo số ngày theo yêu cầu', () => {
+    const plan = generateWeeklyPlan({ recipes: seedRecipes(), servings: 2, startDate: '2026-10-26', days: 3 });
+    assert.equal(plan.days.length, 3);
+    assert.equal(plan.endDate, '2026-10-28');
+    assert.equal(plan.totalCost, 117_000 * 2 * 3);
+  });
+
   it('bỏ món chứa nguyên liệu cần tránh', () => {
     const plan = generateWeeklyPlan({ recipes: seedRecipes(), servings: 1, avoid: ['thịt heo'], startDate: '2026-10-26' });
     assert.ok(plan.days.every((d) => !d.meals.includes('bun-thit-nuong')));

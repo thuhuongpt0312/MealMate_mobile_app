@@ -1,12 +1,13 @@
 import { MEAL_SLOTS } from '../data/seed.js';
 
 export const DAYS_PER_PLAN = 7;
+export const MAX_DAYS_PER_PLAN = 7;
 
 /**
- * Tạo thực đơn 7 ngày (S05–S07). Đây là bản giả lập "AI": xoay vòng các món theo từng bữa,
+ * Tạo thực đơn nhiều ngày (S05–S07), mặc định 7 ngày. Đây là bản giả lập "AI": xoay vòng các món theo từng bữa,
  * bỏ món chứa nguyên liệu người dùng muốn tránh. Khi có API AI thật chỉ cần thay hàm này.
  */
-export function generateWeeklyPlan({ recipes, servings, avoid = [], startDate }) {
+export function generateWeeklyPlan({ recipes, servings, avoid = [], startDate, days: dayCount = DAYS_PER_PLAN }) {
   const avoidWords = avoid.map((a) => a.trim().toLowerCase()).filter(Boolean);
   const allowed = recipes.filter((r) => r.status === 'published' && !containsAvoided(r, avoidWords));
 
@@ -14,7 +15,7 @@ export function generateWeeklyPlan({ recipes, servings, avoid = [], startDate })
   const start = new Date(`${startDate}T00:00:00Z`);
 
   const days = [];
-  for (let i = 0; i < DAYS_PER_PLAN; i++) {
+  for (let i = 0; i < dayCount; i++) {
     const date = new Date(start.getTime() + i * 86_400_000).toISOString().slice(0, 10);
     const meals = bySlot.filter((list) => list.length).map((list) => list[i % list.length].id);
     days.push({ date, meals });
