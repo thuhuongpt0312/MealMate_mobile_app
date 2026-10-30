@@ -6,12 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import vn.edu.uth.mealmate.data.remote.ApiClient
-import vn.edu.uth.mealmate.data.remote.LoginRequest
-import vn.edu.uth.mealmate.data.remote.RegisterRequest
 import vn.edu.uth.mealmate.data.remote.UserDto
-import vn.edu.uth.mealmate.data.remote.toUserErrorMessage
-import vn.edu.uth.mealmate.data.session.SessionManager
+import vn.edu.uth.mealmate.data.repository.MealMateRepository
 
 sealed interface AuthUiState {
     data object Idle : AuthUiState
@@ -20,40 +16,33 @@ sealed interface AuthUiState {
     data class Error(val message: String) : AuthUiState
 }
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(
+    private val repository: MealMateRepository = MealMateRepository.instance,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    fun login(email: String, password: String, onSuccess: () -> Unit = {}) {
-        viewModelScope.launch {
-            _uiState.value = AuthUiState.Loading
-            try {
-                val res = ApiClient.api.login(LoginRequest(email, password))
-                SessionManager.save(res.token)
-                _uiState.value = AuthUiState.Success(res.user)
-                onSuccess()
-            } catch (e: Throwable) {
-                _uiState.value = AuthUiState.Error(e.toUserErrorMessage())
-            }
-        }
-    }
+    fun login(email: String, password: String, onSuccess: () -> Unit = {}) =
+        submit(onSuccess) { repository.login(email, password) }
 
-    fun register(name: String, email: String, password: String, onSuccess: () -> Unit = {}) {
-        viewModelScope.launch {
-            _uiState.value = AuthUiState.Loading
-            try {
-                val res = ApiClient.api.register(RegisterRequest(name, email, password))
-                SessionManager.save(res.token)
-                _uiState.value = AuthUiState.Success(res.user)
-                onSuccess()
-            } catch (e: Throwable) {
-                _uiState.value = AuthUiState.Error(e.toUserErrorMessage())
-            }
-        }
-    }
+    fun register(name: String, email: String, password: String, onSuccess: () -> Unit = {}) =
+        submit(onSuccess) { repository.register(name, email, password) }
 
     fun resetState() {
         _uiState.value = AuthUiState.Idle
+    }
+
+    private fun submit(onSuccess: () -> Unit, action: suspend () -> Result<UserDto>) {
+        if (_uiState.value is AuthUiState.Loading) return // chặn bấm nút nhiều lần
+        viewModelScope.launch {
+            _uiState.value = AuthUiState.Loading
+            action()
+                .onSuccess {
+                    _uiState.value = AuthUiState.Success(it)
+                    onSuccess()
+                }
+                .onFailure { _uiState.value = AuthUiState.Error(it.message.orEmpty()) }
+        }
     }
 }

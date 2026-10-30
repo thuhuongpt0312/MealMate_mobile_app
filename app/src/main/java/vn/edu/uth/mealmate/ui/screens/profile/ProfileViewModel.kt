@@ -6,11 +6,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import vn.edu.uth.mealmate.data.remote.ApiClient
 import vn.edu.uth.mealmate.data.remote.PreferencesDto
 import vn.edu.uth.mealmate.data.remote.UserDto
-import vn.edu.uth.mealmate.data.remote.toUserErrorMessage
-import vn.edu.uth.mealmate.data.session.SessionManager
+import vn.edu.uth.mealmate.data.repository.MealMateRepository
 
 sealed interface ProfileUiState {
     data object Loading : ProfileUiState
@@ -19,7 +17,9 @@ sealed interface ProfileUiState {
     data class Error(val message: String) : ProfileUiState
 }
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel(
+    private val repository: MealMateRepository = MealMateRepository.instance,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -29,28 +29,26 @@ class ProfileViewModel : ViewModel() {
     }
 
     fun loadProfile() {
-        if (!SessionManager.isLoggedIn) {
+        if (!repository.isLoggedIn) {
             _uiState.value = ProfileUiState.LoggedOut
             return
         }
         viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
-            try {
-                val me = ApiClient.api.me()
-                val prefs = runCatching { ApiClient.api.preferences() }.getOrNull()
-                _uiState.value = ProfileUiState.Success(me.user, prefs)
-            } catch (e: Throwable) {
-                _uiState.value = ProfileUiState.Error(e.toUserErrorMessage())
-            }
+            repository.getMe()
+                .onSuccess { user ->
+                    val prefs = repository.getPreferences().getOrNull()
+                    _uiState.value = ProfileUiState.Success(user, prefs)
+                }
+                .onFailure { _uiState.value = ProfileUiState.Error(it.message.orEmpty()) }
         }
     }
 
-    fun logout(onLoggedOut: () -> Unit = {}) {
+    /** Xóa phiên; MealMateApp tự chuyển về màn đăng nhập khi token bị xóa. */
+    fun logout() {
         viewModelScope.launch {
-            runCatching { ApiClient.api.logout() }
-            SessionManager.clear()
+            repository.logout()
             _uiState.value = ProfileUiState.LoggedOut
-            onLoggedOut()
         }
     }
 }

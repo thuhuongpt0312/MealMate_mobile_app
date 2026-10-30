@@ -63,9 +63,11 @@ data class MealPlanDto(
     val recipes: Map<String, RecipeDto>? = null, // chỉ có khi GET /meal-plans/{id}
 )
 
+/** Trường null không được gửi lên, server dùng giá trị mặc định (hôm nay, số người trong tùy chọn, 7 ngày). */
 data class CreatePlanRequest(
     val startDate: String? = null,
     val servings: Int? = null,
+    val days: Int? = null,
 )
 
 data class ShoppingItemDto(

@@ -6,9 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import vn.edu.uth.mealmate.data.remote.ApiClient
 import vn.edu.uth.mealmate.data.remote.MealPlanDto
-import vn.edu.uth.mealmate.data.remote.toUserErrorMessage
+import vn.edu.uth.mealmate.data.repository.MealMateRepository
 
 sealed interface HistoryUiState {
     data object Loading : HistoryUiState
@@ -16,7 +15,9 @@ sealed interface HistoryUiState {
     data class Error(val message: String) : HistoryUiState
 }
 
-class HistoryViewModel : ViewModel() {
+class HistoryViewModel(
+    private val repository: MealMateRepository = MealMateRepository.instance,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HistoryUiState>(HistoryUiState.Loading)
     val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
@@ -28,12 +29,12 @@ class HistoryViewModel : ViewModel() {
     fun loadHistory() {
         viewModelScope.launch {
             _uiState.value = HistoryUiState.Loading
-            try {
-                val res = ApiClient.api.plans()
-                _uiState.value = HistoryUiState.Success(res.items, res.total)
-            } catch (e: Throwable) {
-                _uiState.value = HistoryUiState.Error(e.toUserErrorMessage())
-            }
+            repository.getPlans()
+                .onSuccess { _uiState.value = HistoryUiState.Success(it, it.size) }
+                .onFailure { _uiState.value = HistoryUiState.Error(it.message.orEmpty()) }
         }
     }
+
+    /** Chọn một tuần để xem lại ở tab Thực đơn và Mua sắm. */
+    fun openPlan(id: String) = repository.selectPlan(id)
 }
