@@ -12,6 +12,7 @@ import vn.edu.uth.mealmate.util.formatFullDate
 import vn.edu.uth.mealmate.util.formatQuantity
 import vn.edu.uth.mealmate.util.formatVnd
 import vn.edu.uth.mealmate.util.greeting
+import vn.edu.uth.mealmate.util.indexOfToday
 import vn.edu.uth.mealmate.util.parseApiDate
 import vn.edu.uth.mealmate.util.shortLabel
 
@@ -51,6 +52,15 @@ class FormatTest {
         assertEquals("Thứ Ba, 10/03", formatFullDate(LocalDate.of(2026, 3, 10)))
         assertEquals("T2", DayOfWeek.MONDAY.shortLabel())
         assertEquals("CN", DayOfWeek.SUNDAY.shortLabel())
+    }
+
+    @Test
+    fun chonHomNayTrongThucDon() {
+        val start = LocalDate.of(2026, 10, 26)
+        val days = (0L until 7L).map { start.plusDays(it) }
+        assertEquals(2, indexOfToday(days, LocalDate.of(2026, 10, 28)))
+        assertEquals(0, indexOfToday(days, LocalDate.of(2026, 12, 1)))
+        assertEquals(0, indexOfToday(emptyList(), LocalDate.of(2026, 10, 28)))
     }
 
     @Test

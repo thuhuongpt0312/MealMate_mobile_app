@@ -156,8 +156,9 @@ fun MealMateApp() {
             // --- Bữa ăn ---
             composable(Routes.MEAL_PLAN) {
                 MealPlanScreen(
-                    onOpenMeal = { nav.navigate(Routes.mealDetail("com-ga-gung")) },
+                    onOpenMeal = { mealId -> nav.navigate(Routes.mealDetail(mealId)) },
                     onShopping = { nav.goToTab(Routes.SHOPPING) },
+                    onCreatePlan = { nav.navigate(Routes.CREATE_PLAN) },
                 )
             }
             composable(

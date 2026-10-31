@@ -49,3 +49,7 @@ fun greeting(hour: Int): String = when (hour) {
     in 14..17 -> "Chào buổi chiều"
     else -> "Chào buổi tối"
 }
+
+/** Vị trí của hôm nay trong danh sách ngày của thực đơn, không có thì chọn ngày đầu tiên. */
+fun indexOfToday(dates: List<LocalDate?>, today: LocalDate = LocalDate.now()): Int =
+    dates.indexOf(today).coerceAtLeast(0)
