@@ -8,7 +8,7 @@ object Routes {
     const val CREATE_PLAN = "create_plan"          // S05
     const val GENERATING = "generating?days={days}&servings={servings}" // S06
     const val MEAL_PLAN = "meal_plan"              // S07
-    const val MEAL_DETAIL = "meal_detail/{mealId}" // S08
+    const val MEAL_DETAIL = "meal_detail/{mealId}?servings={servings}" // S08
     const val SHOPPING = "shopping"                // S09
     const val PANTRY = "pantry"                    // S10
     const val NUTRITION = "nutrition"              // S11
@@ -20,6 +20,6 @@ object Routes {
     const val PROFILE = "profile"                  // S16
     const val IMAGE_CREDITS = "image_credits"      // Nguồn hình ảnh
 
-    fun mealDetail(mealId: String) = "meal_detail/$mealId"
+    fun mealDetail(mealId: String, servings: Int = 1) = "meal_detail/$mealId?servings=$servings"
     fun generating(days: Int, servings: Int) = "generating?days=$days&servings=$servings"
 }

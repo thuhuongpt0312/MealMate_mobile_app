@@ -156,17 +156,21 @@ fun MealMateApp() {
             // --- Bữa ăn ---
             composable(Routes.MEAL_PLAN) {
                 MealPlanScreen(
-                    onOpenMeal = { mealId -> nav.navigate(Routes.mealDetail(mealId)) },
+                    onOpenMeal = { mealId, servings -> nav.navigate(Routes.mealDetail(mealId, servings)) },
                     onShopping = { nav.goToTab(Routes.SHOPPING) },
                     onCreatePlan = { nav.navigate(Routes.CREATE_PLAN) },
                 )
             }
             composable(
                 route = Routes.MEAL_DETAIL,
-                arguments = listOf(navArgument("mealId") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("mealId") { type = NavType.StringType },
+                    navArgument("servings") { type = NavType.IntType; defaultValue = 1 },
+                ),
             ) { entry ->
                 MealDetailScreen(
                     mealId = entry.arguments?.getString("mealId").orEmpty(),
+                    servings = entry.arguments?.getInt("servings")?.coerceAtLeast(1) ?: 1,
                     onBack = { nav.popBackStack() },
                 )
             }

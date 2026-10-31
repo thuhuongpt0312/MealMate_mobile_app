@@ -25,6 +25,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,18 +36,40 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import vn.edu.uth.mealmate.data.sample.SampleData
+import androidx.lifecycle.viewmodel.compose.viewModel
+import vn.edu.uth.mealmate.data.model.Meal
 import vn.edu.uth.mealmate.ui.components.HeaderBar
+import vn.edu.uth.mealmate.ui.components.LoadingView
+import vn.edu.uth.mealmate.ui.components.MessageView
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.formatQuantity
 import vn.edu.uth.mealmate.util.formatVnd
 
 @Composable
 fun MealDetailScreen(
     mealId: String,
+    servings: Int = 1,
     onBack: () -> Unit = {},
+    vm: MealDetailViewModel = viewModel(),
 ) {
-    val meal = SampleData.meals.find { it.id == mealId } ?: SampleData.meals.first { it.id == "com-ga-gung" }
+    LaunchedEffect(mealId) { vm.load(mealId) }
+    val uiState by vm.uiState.collectAsState()
 
+    when (val state = uiState) {
+        is MealDetailUiState.Success -> MealDetailContent(state.meal, servings, onBack)
+        MealDetailUiState.Loading -> Column(Modifier.fillMaxSize().background(AppColors.Cream).padding(horizontal = 16.dp)) {
+            HeaderBar(title = "Chi tiết món", onBack = onBack)
+            LoadingView()
+        }
+        is MealDetailUiState.Error -> Column(Modifier.fillMaxSize().background(AppColors.Cream).padding(horizontal = 16.dp)) {
+            HeaderBar(title = "Chi tiết món", onBack = onBack)
+            MessageView(title = "Không tải được món ăn", message = state.message, actionLabel = "Thử lại", onAction = vm::retry)
+        }
+    }
+}
+
+@Composable
+private fun MealDetailContent(meal: Meal, servings: Int, onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -89,7 +114,7 @@ fun MealDetailScreen(
         ) {
             // Tag
             Text(
-                text = "${meal.slot.label.uppercase()} · CÂN BẰNG",
+                text = meal.slot.label.uppercase(),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = AppColors.Green,
@@ -108,7 +133,7 @@ fun MealDetailScreen(
             Spacer(Modifier.height(6.dp))
 
             Text(
-                text = "Đậm đà, dễ nấu với rau củ giòn và sốt gừng thơm nhẹ.",
+                text = "${meal.ingredients.size} nguyên liệu · khoảng ${formatVnd(meal.pricePerServing * servings)} cho $servings người",
                 fontSize = 13.sp,
                 color = AppColors.Muted,
                 lineHeight = 18.sp,
@@ -145,7 +170,7 @@ fun MealDetailScreen(
 
             // Nguyên liệu
             Text(
-                text = "Nguyên liệu · 3 phần",
+                text = "Nguyên liệu · $servings phần",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = AppColors.Ink,
@@ -167,7 +192,7 @@ fun MealDetailScreen(
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
-                        text = "${(ing.amount * 3).toInt()} ${ing.unit}",
+                        text = formatQuantity(ing.amount * servings, ing.unit),
                         fontSize = 14.sp,
                         color = AppColors.Muted,
                     )

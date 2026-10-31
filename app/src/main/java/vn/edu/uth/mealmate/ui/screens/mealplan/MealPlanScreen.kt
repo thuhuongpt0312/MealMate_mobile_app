@@ -56,7 +56,7 @@ import vn.edu.uth.mealmate.util.shortLabel
 
 @Composable
 fun MealPlanScreen(
-    onOpenMeal: (mealId: String) -> Unit = {},
+    onOpenMeal: (mealId: String, servings: Int) -> Unit = { _, _ -> },
     onShopping: () -> Unit = {},
     onCreatePlan: () -> Unit = {},
     vm: MealPlanViewModel = viewModel(),
@@ -117,7 +117,7 @@ private fun PlanTitle(subtitle: String) {
 @Composable
 private fun PlanContent(
     plan: MealPlanDto,
-    onOpenMeal: (String) -> Unit,
+    onOpenMeal: (String, Int) -> Unit,
     onShopping: () -> Unit,
 ) {
     val dates = remember(plan.id) { plan.days.map { parseApiDate(it.date) } }
@@ -246,7 +246,7 @@ private fun PlanContent(
             slotName = recipe?.slot?.let { slot -> MealSlot.entries.find { it.name == slot }?.label }?.uppercase() ?: "MÓN ĂN",
             title = recipe?.name ?: mealId,
             subtitle = recipe?.let { "${it.minutes} phút · ${formatVnd(it.pricePerServing)}/phần" }.orEmpty(),
-            onClick = { onOpenMeal(mealId) },
+            onClick = { onOpenMeal(mealId, plan.servings) },
         )
         Spacer(Modifier.height(10.dp))
     }
