@@ -135,13 +135,22 @@ fun MealMateApp() {
             composable(Routes.CREATE_PLAN) {
                 CreatePlanScreen(
                     onBack = { nav.popBackStack() },
-                    onCreate = { nav.navigate(Routes.GENERATING) },
+                    onCreate = { days, servings -> nav.navigate(Routes.generating(days, servings)) },
                 )
             }
-            composable(Routes.GENERATING) {
-                GeneratingScreen(onDone = {
-                    nav.navigate(Routes.MEAL_PLAN) { popUpTo(Routes.HOME) }
-                })
+            composable(
+                route = Routes.GENERATING,
+                arguments = listOf(
+                    navArgument("days") { type = NavType.IntType; defaultValue = 7 },
+                    navArgument("servings") { type = NavType.IntType; defaultValue = 0 },
+                ),
+            ) { entry ->
+                GeneratingScreen(
+                    days = entry.arguments?.getInt("days") ?: 7,
+                    servings = entry.arguments?.getInt("servings")?.takeIf { it > 0 },
+                    onDone = { nav.navigate(Routes.MEAL_PLAN) { popUpTo(Routes.HOME) } },
+                    onBack = { nav.popBackStack() },
+                )
             }
 
             // --- Bữa ăn ---

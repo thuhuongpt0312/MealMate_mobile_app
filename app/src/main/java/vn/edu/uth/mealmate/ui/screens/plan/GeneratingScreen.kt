@@ -25,8 +25,10 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -39,32 +41,39 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
-import vn.edu.uth.mealmate.data.remote.ApiClient
-import vn.edu.uth.mealmate.data.remote.CreatePlanRequest
 import vn.edu.uth.mealmate.ui.components.MealMateBrandBadge
+import vn.edu.uth.mealmate.ui.components.PrimaryButton
 import vn.edu.uth.mealmate.ui.theme.AppColors
 
 @Composable
-fun GeneratingScreen(onDone: () -> Unit) {
-    var completedStep by remember { mutableIntStateOf(0) }
+fun GeneratingScreen(
+    days: Int = 7,
+    servings: Int? = null,
+    onDone: (planId: String) -> Unit = {},
+    onBack: () -> Unit = {},
+    vm: GeneratingViewModel = viewModel(),
+) {
+    val state by vm.uiState.collectAsState()
+    var animatedStep by remember { mutableIntStateOf(0) }
 
+    // Gọi API song song với animation; bước cuối chỉ được tick khi server đã tạo xong thực đơn
     LaunchedEffect(Unit) {
-        // Gọi API tạo thực đơn trong lúc chạy animation
-        runCatching {
-            ApiClient.api.createPlan(CreatePlanRequest(servings = 3))
+        vm.start(days, servings)
+        for (step in 1..3) {
+            delay(650)
+            animatedStep = step
         }
-
-        delay(600)
-        completedStep = 1
-        delay(700)
-        completedStep = 2
-        delay(700)
-        completedStep = 3
-        delay(600)
-        completedStep = 4
-        delay(400)
-        onDone()
+    }
+    val done = state as? GeneratingUiState.Done
+    val finished = done != null && animatedStep >= 3
+    val completedStep = if (finished) 4 else animatedStep
+    LaunchedEffect(finished) {
+        if (finished) {
+            delay(400)
+            onDone(done!!.planId)
+        }
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
@@ -142,6 +151,20 @@ fun GeneratingScreen(onDone: () -> Unit) {
         )
 
         Spacer(Modifier.height(36.dp))
+
+        val error = state as? GeneratingUiState.Error
+        if (error != null) {
+            Text(
+                text = error.message,
+                fontSize = 14.sp,
+                color = AppColors.Orange,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
+            Spacer(Modifier.height(20.dp))
+            PrimaryButton(label = "Thử lại", onClick = vm::retry, showArrow = false)
+            TextButton(onClick = onBack) { Text("Quay lại", color = AppColors.Muted) }
+            return@Column
+        }
 
         // Checklist tiến độ
         Box(

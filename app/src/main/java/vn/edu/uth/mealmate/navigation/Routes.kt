@@ -6,7 +6,7 @@ object Routes {
     const val SETUP = "setup"                      // S03
     const val HOME = "home"                        // S04
     const val CREATE_PLAN = "create_plan"          // S05
-    const val GENERATING = "generating"            // S06
+    const val GENERATING = "generating?days={days}&servings={servings}" // S06
     const val MEAL_PLAN = "meal_plan"              // S07
     const val MEAL_DETAIL = "meal_detail/{mealId}" // S08
     const val SHOPPING = "shopping"                // S09
@@ -21,4 +21,5 @@ object Routes {
     const val IMAGE_CREDITS = "image_credits"      // Nguồn hình ảnh
 
     fun mealDetail(mealId: String) = "meal_detail/$mealId"
+    fun generating(days: Int, servings: Int) = "generating?days=$days&servings=$servings"
 }

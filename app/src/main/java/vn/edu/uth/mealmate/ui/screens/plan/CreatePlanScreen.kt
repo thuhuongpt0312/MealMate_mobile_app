@@ -16,11 +16,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -31,16 +35,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import vn.edu.uth.mealmate.ui.components.HeaderBar
 import vn.edu.uth.mealmate.ui.components.PrimaryButton
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.formatVnd
 
 @Composable
 fun CreatePlanScreen(
     onBack: () -> Unit = {},
-    onCreate: () -> Unit = {},
+    onCreate: (days: Int, servings: Int) -> Unit = { _, _ -> },
+    vm: CreatePlanViewModel = viewModel(),
 ) {
     var selectedDays by remember { mutableIntStateOf(7) }
+    val state by vm.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -50,7 +58,7 @@ fun CreatePlanScreen(
     ) {
         HeaderBar(
             title = "Tạo thực đơn",
-            subtitle = "Bước 1/4",
+            subtitle = "Chọn số ngày và số người",
             onBack = onBack,
         )
 
@@ -82,7 +90,10 @@ fun CreatePlanScreen(
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = "$selectedDays ngày · 3 người",
+            text = buildString {
+                append("$selectedDays ngày · ${state.servings} người")
+                state.weeklyBudget?.let { append(" · ngân sách ${formatVnd(it)}") }
+            },
             fontSize = 14.sp,
             color = AppColors.Muted,
         )
@@ -117,6 +128,28 @@ fun CreatePlanScreen(
                         fontSize = 14.sp,
                     )
                 }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Số người ăn cho tuần này (mặc định lấy từ tùy chọn cá nhân)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(AppColors.Surface)
+                .border(1.dp, AppColors.Line, RoundedCornerShape(14.dp))
+                .padding(horizontal = 16.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Số người ăn", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColors.Ink, modifier = Modifier.weight(1f))
+            IconButton(onClick = { vm.changeServings(-1) }, enabled = state.servings > CreatePlanViewModel.MIN_SERVINGS) {
+                Icon(Icons.Filled.Remove, contentDescription = "Bớt một người", tint = AppColors.Ink)
+            }
+            Text("${state.servings}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppColors.Ink)
+            IconButton(onClick = { vm.changeServings(1) }, enabled = state.servings < CreatePlanViewModel.MAX_SERVINGS) {
+                Icon(Icons.Filled.Add, contentDescription = "Thêm một người", tint = AppColors.Ink)
             }
         }
 
@@ -159,8 +192,8 @@ fun CreatePlanScreen(
         Spacer(Modifier.weight(1f))
 
         PrimaryButton(
-            label = "Tiếp tục",
-            onClick = onCreate,
+            label = "Tạo thực đơn",
+            onClick = { onCreate(selectedDays, state.servings) },
         )
     }
 }
