@@ -27,39 +27,31 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import vn.edu.uth.mealmate.domain.groupForShopping
+import vn.edu.uth.mealmate.ui.components.LoadingView
+import vn.edu.uth.mealmate.ui.components.MessageView
 import vn.edu.uth.mealmate.ui.theme.AppColors
-
-private data class ShoppingUiItem(val id: String, val name: String, val amountText: String, var bought: Boolean)
+import vn.edu.uth.mealmate.util.formatDateRange
+import vn.edu.uth.mealmate.util.formatQuantity
+import vn.edu.uth.mealmate.util.formatVnd
 
 @Composable
-fun ShoppingScreen(onPantry: () -> Unit = {}) {
-    val vegItems = remember {
-        mutableStateListOf(
-            ShoppingUiItem("1", "Cà rốt", "4 củ", true),
-            ShoppingUiItem("2", "Rau bó xôi", "2 túi", false),
-            ShoppingUiItem("3", "Hành lá", "1 bó", false),
-            ShoppingUiItem("4", "Bơ", "3 quả", false),
-        )
-    }
-
-    val meatItems = remember {
-        mutableStateListOf(
-            ShoppingUiItem("5", "Ức gà", "1,2 kg", true),
-            ShoppingUiItem("6", "Trứng", "12 quả", false),
-        )
-    }
-
-    val totalBought = vegItems.count { it.bought } + meatItems.count { it.bought }
-    val totalItems = vegItems.size + meatItems.size
+fun ShoppingScreen(
+    onPantry: () -> Unit = {},
+    onCreatePlan: () -> Unit = {},
+    vm: ShoppingViewModel = viewModel(),
+) {
+    val uiState by vm.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -70,6 +62,7 @@ fun ShoppingScreen(onPantry: () -> Unit = {}) {
     ) {
         Spacer(Modifier.height(16.dp))
 
+        val plan = (uiState as? ShoppingUiState.Success)?.plan
         // Header with + button
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -83,11 +76,13 @@ fun ShoppingScreen(onPantry: () -> Unit = {}) {
                     fontWeight = FontWeight.Bold,
                     color = AppColors.Ink,
                 )
-                Text(
-                    text = "Cho thực đơn 11–17/03",
-                    fontSize = 13.sp,
-                    color = AppColors.Muted,
-                )
+                if (plan != null) {
+                    Text(
+                        text = "Cho thực đơn ${formatDateRange(plan.startDate, plan.endDate)} · đã trừ đồ trong tủ bếp",
+                        fontSize = 13.sp,
+                        color = AppColors.Muted,
+                    )
+                }
             }
 
             IconButton(
@@ -98,100 +93,27 @@ fun ShoppingScreen(onPantry: () -> Unit = {}) {
                     .background(AppColors.Surface)
                     .border(1.dp, AppColors.Line, CircleShape),
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Thêm món", tint = AppColors.Ink)
+                Icon(Icons.Filled.Add, contentDescription = "Cập nhật tủ bếp", tint = AppColors.Ink)
             }
         }
 
         Spacer(Modifier.height(16.dp))
 
-        // Card Tổng dự kiến & tiến độ đã mua
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
-                .background(AppColors.Surface)
-                .border(1.dp, AppColors.Line, RoundedCornerShape(20.dp))
-                .padding(18.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column {
-                    Text(
-                        text = "TỔNG DỰ KIẾN",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.Muted,
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = "510.000đ",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = AppColors.Ink,
-                    )
-                }
-
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "Đã mua $totalBought/$totalItems món",
-                        fontSize = 12.sp,
-                        color = AppColors.Muted,
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    LinearProgressIndicator(
-                        progress = { if (totalItems > 0) totalBought.toFloat() / totalItems else 0f },
-                        modifier = Modifier
-                            .width(80.dp)
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        color = AppColors.Green,
-                        trackColor = AppColors.Line,
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        // Nhóm Rau củ
-        Text(
-            text = "Rau củ",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = AppColors.Ink,
-        )
-        Spacer(Modifier.height(10.dp))
-
-        vegItems.forEachIndexed { index, item ->
-            ShoppingRow(
-                name = "${item.name} · ${item.amountText}",
-                isBought = item.bought,
-                onToggle = { vegItems[index] = item.copy(bought = !item.bought) },
+        when (val state = uiState) {
+            ShoppingUiState.Loading -> LoadingView()
+            ShoppingUiState.NoPlan -> MessageView(
+                title = "Chưa có danh sách mua sắm",
+                message = "Tạo thực đơn để MealMate tính sẵn những nguyên liệu cần mua.",
+                actionLabel = "Tạo thực đơn",
+                onAction = onCreatePlan,
             )
-            Spacer(Modifier.height(8.dp))
-        }
-
-        Spacer(Modifier.height(20.dp))
-
-        // Nhóm Thịt & đạm
-        Text(
-            text = "Thịt & đạm",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = AppColors.Ink,
-        )
-        Spacer(Modifier.height(10.dp))
-
-        meatItems.forEachIndexed { index, item ->
-            ShoppingRow(
-                name = "${item.name} · ${item.amountText}",
-                isBought = item.bought,
-                onToggle = { meatItems[index] = item.copy(bought = !item.bought) },
+            is ShoppingUiState.Error -> MessageView(
+                title = "Không tải được danh sách",
+                message = state.message,
+                actionLabel = "Thử lại",
+                onAction = vm::load,
             )
-            Spacer(Modifier.height(8.dp))
+            is ShoppingUiState.Success -> ShoppingContent(state, onToggle = vm::toggleBought, onDismissMessage = vm::clearMessage)
         }
 
         Spacer(Modifier.height(24.dp))
@@ -199,8 +121,114 @@ fun ShoppingScreen(onPantry: () -> Unit = {}) {
 }
 
 @Composable
+private fun ShoppingContent(
+    state: ShoppingUiState.Success,
+    onToggle: (String) -> Unit,
+    onDismissMessage: () -> Unit,
+) {
+    val items = state.list.items
+    val totalBought = items.count { it.bought }
+    val totalItems = items.size
+
+    // Card Tổng dự kiến & tiến độ đã mua
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(AppColors.Surface)
+            .border(1.dp, AppColors.Line, RoundedCornerShape(20.dp))
+            .padding(18.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column {
+                Text(
+                    text = "TỔNG DỰ KIẾN",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.Muted,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = formatVnd(state.list.total),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AppColors.Ink,
+                )
+                Text(
+                    text = "Còn phải mua ${formatVnd(state.list.remaining)}",
+                    fontSize = 12.sp,
+                    color = AppColors.Muted,
+                )
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "Đã mua $totalBought/$totalItems món",
+                    fontSize = 12.sp,
+                    color = AppColors.Muted,
+                )
+                Spacer(Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { if (totalItems > 0) totalBought.toFloat() / totalItems else 0f },
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = AppColors.Green,
+                    trackColor = AppColors.Line,
+                )
+            }
+        }
+    }
+
+    if (state.message != null) {
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = state.message,
+            fontSize = 13.sp,
+            color = AppColors.Orange,
+            modifier = Modifier.clickable { onDismissMessage() },
+        )
+    }
+
+    if (items.isEmpty()) {
+        MessageView(
+            title = "Không cần mua thêm gì",
+            message = "Tủ bếp của bạn đã đủ nguyên liệu cho thực đơn này.",
+        )
+        return
+    }
+
+    groupForShopping(items, { it.group }, { it.bought }).forEach { (group, groupItems) ->
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = group.label,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = AppColors.Ink,
+        )
+        Spacer(Modifier.height(10.dp))
+
+        groupItems.forEach { item ->
+            ShoppingRow(
+                name = "${item.name} · ${formatQuantity(item.amount, item.unit)}",
+                cost = formatVnd(item.cost),
+                isBought = item.bought,
+                onToggle = { onToggle(item.id) },
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
 private fun ShoppingRow(
     name: String,
+    cost: String,
     isBought: Boolean,
     onToggle: () -> Unit,
 ) {
@@ -237,7 +265,10 @@ private fun ShoppingRow(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = if (isBought) AppColors.Muted else AppColors.Ink,
+                textDecoration = if (isBought) TextDecoration.LineThrough else null,
+                modifier = Modifier.weight(1f),
             )
+            Text(text = cost, fontSize = 13.sp, color = AppColors.Muted)
         }
     }
 }

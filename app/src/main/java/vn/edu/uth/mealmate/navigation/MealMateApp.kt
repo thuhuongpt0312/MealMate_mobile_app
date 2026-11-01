@@ -176,7 +176,12 @@ fun MealMateApp() {
             }
 
             // --- Tiện ích, thư viện ---
-            composable(Routes.SHOPPING) { ShoppingScreen(onPantry = { nav.navigate(Routes.PANTRY) }) }
+            composable(Routes.SHOPPING) {
+                ShoppingScreen(
+                    onPantry = { nav.navigate(Routes.PANTRY) },
+                    onCreatePlan = { nav.navigate(Routes.CREATE_PLAN) },
+                )
+            }
             composable(Routes.PANTRY) { PantryScreen(onBack = { nav.popBackStack() }) }
             composable(Routes.NUTRITION) { NutritionScreen(onBack = { nav.popBackStack() }) }
             composable(Routes.FAVORITES) { FavoritesScreen(onBack = { nav.popBackStack() }) }
