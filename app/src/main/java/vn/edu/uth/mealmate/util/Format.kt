@@ -20,6 +20,9 @@ fun formatAmount(amount: Double): String {
     return sign + whole + "," + fraction.toString().padStart(2, '0').trimEnd('0')
 }
 
+/** Đọc số lượng người dùng nhập, chấp nhận cả dấu phẩy: "1,5" -> 1.5. Không phải số thì trả null. */
+fun parseAmount(text: String): Double? = text.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
+
 /** "600 g", "1,5 túi" */
 fun formatQuantity(amount: Double, unit: String): String = "${formatAmount(amount)} ${unit.trim()}".trim()
 

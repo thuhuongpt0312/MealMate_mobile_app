@@ -13,6 +13,7 @@ import vn.edu.uth.mealmate.util.formatQuantity
 import vn.edu.uth.mealmate.util.formatVnd
 import vn.edu.uth.mealmate.util.greeting
 import vn.edu.uth.mealmate.util.indexOfToday
+import vn.edu.uth.mealmate.util.parseAmount
 import vn.edu.uth.mealmate.util.parseApiDate
 import vn.edu.uth.mealmate.util.shortLabel
 
@@ -33,6 +34,16 @@ class FormatTest {
         assertEquals("0,33", formatAmount(1.0 / 3))
         assertEquals("-0,5", formatAmount(-0.5))
         assertEquals("1,5 túi", formatQuantity(1.5, " túi "))
+    }
+
+    @Test
+    fun docSoLuongNguoiDungNhap() {
+        assertEquals(1.5, parseAmount("1,5")!!, 0.0)
+        assertEquals(2.0, parseAmount(" 2 ")!!, 0.0)
+        assertEquals(0.25, parseAmount("0.25")!!, 0.0)
+        assertNull(parseAmount("abc"))
+        assertNull(parseAmount(""))
+        assertNull(parseAmount("NaN"))
     }
 
     @Test
