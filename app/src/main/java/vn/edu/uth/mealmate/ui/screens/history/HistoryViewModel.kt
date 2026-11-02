@@ -23,12 +23,15 @@ class HistoryViewModel(
     val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
 
     init {
-        loadHistory()
+        // Tạo thực đơn mới (đổi thực đơn đang chọn) thì tải lại danh sách, không nháy màn hình đang tải
+        viewModelScope.launch {
+            repository.activePlanId.collect { loadHistory(showLoading = _uiState.value !is HistoryUiState.Success) }
+        }
     }
 
-    fun loadHistory() {
+    fun loadHistory(showLoading: Boolean = true) {
         viewModelScope.launch {
-            _uiState.value = HistoryUiState.Loading
+            if (showLoading) _uiState.value = HistoryUiState.Loading
             repository.getPlans()
                 .onSuccess { _uiState.value = HistoryUiState.Success(it, it.size) }
                 .onFailure { _uiState.value = HistoryUiState.Error(it.message.orEmpty()) }

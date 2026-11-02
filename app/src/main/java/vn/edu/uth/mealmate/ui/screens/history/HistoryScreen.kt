@@ -24,21 +24,35 @@ import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import java.time.LocalDate
+import vn.edu.uth.mealmate.data.remote.MealPlanDto
+import vn.edu.uth.mealmate.ui.components.LoadingView
+import vn.edu.uth.mealmate.ui.components.MessageView
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.formatDateRange
+import vn.edu.uth.mealmate.util.formatVnd
+import vn.edu.uth.mealmate.util.parseApiDate
 
 @Composable
-fun HistoryScreen(onOpenPlan: () -> Unit = {}) {
-    val previousPlans = listOf(
-        "Thực đơn 04–10/03" to "648.000đ",
-        "Thực đơn 26/02–03/03" to "735.000đ",
-        "Thực đơn 19–25/02" to "490.000đ",
-    )
+fun HistoryScreen(
+    onOpenPlan: () -> Unit = {},
+    onCreatePlan: () -> Unit = {},
+    vm: HistoryViewModel = viewModel(),
+) {
+    val uiState by vm.uiState.collectAsState()
+    val open: (MealPlanDto) -> Unit = { plan ->
+        vm.openPlan(plan.id)
+        onOpenPlan()
+    }
 
     Column(
         modifier = Modifier
@@ -63,14 +77,46 @@ fun HistoryScreen(onOpenPlan: () -> Unit = {}) {
 
         Spacer(Modifier.height(16.dp))
 
-        // Featured Card: Tuần này
+        when (val state = uiState) {
+            HistoryUiState.Loading -> LoadingView()
+            is HistoryUiState.Error -> MessageView(
+                title = "Không tải được lịch sử",
+                message = state.message,
+                actionLabel = "Thử lại",
+                onAction = { vm.loadHistory() },
+            )
+            is HistoryUiState.Success -> if (state.plans.isEmpty()) {
+                MessageView(
+                    title = "Chưa có thực đơn nào",
+                    message = "Các tuần bạn đã lên thực đơn sẽ được lưu ở đây để dùng lại.",
+                    actionLabel = "Tạo thực đơn",
+                    onAction = onCreatePlan,
+                )
+            } else {
+                HistoryContent(state.plans, onOpen = open)
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun HistoryContent(plans: List<MealPlanDto>, onOpen: (MealPlanDto) -> Unit) {
+    val latest = plans.first()
+    val today = LocalDate.now()
+    val isCurrent = parseApiDate(latest.startDate)?.let { !today.isBefore(it) } == true &&
+        parseApiDate(latest.endDate)?.let { !today.isAfter(it) } == true
+
+    run {
+        // Featured Card: thực đơn gần nhất
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
                 .background(AppColors.Surface)
                 .border(1.dp, AppColors.Line, RoundedCornerShape(20.dp))
-                .clickable { onOpenPlan() }
+                .clickable { onOpen(latest) }
                 .padding(18.dp),
         ) {
             Row(
@@ -86,7 +132,7 @@ fun HistoryScreen(onOpenPlan: () -> Unit = {}) {
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                     ) {
                         Text(
-                            text = "TUẦN NÀY",
+                            text = if (isCurrent) "TUẦN NÀY" else "GẦN NHẤT",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.GreenDark,
@@ -96,20 +142,20 @@ fun HistoryScreen(onOpenPlan: () -> Unit = {}) {
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        text = "Tuần gia đình cân bằng",
+                        text = "Thực đơn ${latest.days.size} ngày",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = AppColors.Ink,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "11–17/03 · 3 người",
+                        text = "${formatDateRange(latest.startDate, latest.endDate)} · ${latest.servings} người",
                         fontSize = 12.sp,
                         color = AppColors.Muted,
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "650.000đ · 18 bữa",
+                        text = "${formatVnd(latest.totalCost)} · ${latest.days.sumOf { it.meals.size }} bữa",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = AppColors.GreenDark,
@@ -133,6 +179,8 @@ fun HistoryScreen(onOpenPlan: () -> Unit = {}) {
             }
         }
 
+        if (plans.size == 1) return
+
         Spacer(Modifier.height(24.dp))
 
         Text(
@@ -144,14 +192,16 @@ fun HistoryScreen(onOpenPlan: () -> Unit = {}) {
 
         Spacer(Modifier.height(12.dp))
 
-        previousPlans.forEach { (title, cost) ->
+        plans.drop(1).forEach { plan ->
+            val title = "Thực đơn ${formatDateRange(plan.startDate, plan.endDate)}"
+            val cost = "${formatVnd(plan.totalCost)} · ${plan.servings} người"
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .background(AppColors.Surface)
                     .border(1.dp, AppColors.Line, RoundedCornerShape(16.dp))
-                    .clickable { onOpenPlan() }
+                    .clickable { onOpen(plan) }
                     .padding(14.dp),
             ) {
                 Row(
@@ -199,7 +249,5 @@ fun HistoryScreen(onOpenPlan: () -> Unit = {}) {
             }
             Spacer(Modifier.height(10.dp))
         }
-
-        Spacer(Modifier.height(24.dp))
     }
 }

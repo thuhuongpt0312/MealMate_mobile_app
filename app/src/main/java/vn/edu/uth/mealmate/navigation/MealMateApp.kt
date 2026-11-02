@@ -186,7 +186,10 @@ fun MealMateApp() {
             composable(Routes.NUTRITION) { NutritionScreen(onBack = { nav.popBackStack() }) }
             composable(Routes.FAVORITES) { FavoritesScreen(onBack = { nav.popBackStack() }) }
             composable(Routes.HISTORY) {
-                HistoryScreen(onOpenPlan = { nav.goToTab(Routes.MEAL_PLAN) })
+                HistoryScreen(
+                    onOpenPlan = { nav.goToTab(Routes.MEAL_PLAN) },
+                    onCreatePlan = { nav.navigate(Routes.CREATE_PLAN) },
+                )
             }
 
             // --- Thông báo ---
