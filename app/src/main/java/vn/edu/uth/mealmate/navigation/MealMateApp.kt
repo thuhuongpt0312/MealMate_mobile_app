@@ -199,7 +199,12 @@ fun MealMateApp() {
             }
             composable(Routes.PANTRY) { PantryScreen(onBack = { nav.popBackStack() }) }
             composable(Routes.NUTRITION) { NutritionScreen(onBack = { nav.popBackStack() }) }
-            composable(Routes.FAVORITES) { FavoritesScreen(onBack = { nav.popBackStack() }) }
+            composable(Routes.FAVORITES) {
+                FavoritesScreen(
+                    onBack = { nav.popBackStack() },
+                    onOpenMeal = { mealId -> nav.navigate(Routes.mealDetail(mealId)) },
+                )
+            }
             composable(Routes.HISTORY) {
                 HistoryScreen(
                     onOpenPlan = { nav.goToTab(Routes.MEAL_PLAN) },

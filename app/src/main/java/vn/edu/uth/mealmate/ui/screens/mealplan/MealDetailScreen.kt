@@ -13,16 +13,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import vn.edu.uth.mealmate.data.local.FavoritesStore
 import vn.edu.uth.mealmate.data.model.Meal
 import vn.edu.uth.mealmate.ui.components.HeaderBar
 import vn.edu.uth.mealmate.ui.components.LoadingView
@@ -54,9 +59,16 @@ fun MealDetailScreen(
 ) {
     LaunchedEffect(mealId) { vm.load(mealId) }
     val uiState by vm.uiState.collectAsState()
+    val favorites by FavoritesStore.ids.collectAsState()
 
     when (val state = uiState) {
-        is MealDetailUiState.Success -> MealDetailContent(state.meal, servings, onBack)
+        is MealDetailUiState.Success -> MealDetailContent(
+            meal = state.meal,
+            servings = servings,
+            isFavorite = state.meal.id in favorites,
+            onToggleFavorite = { FavoritesStore.toggle(state.meal.id) },
+            onBack = onBack,
+        )
         MealDetailUiState.Loading -> Column(Modifier.fillMaxSize().background(AppColors.Cream).padding(horizontal = 16.dp)) {
             HeaderBar(title = "Chi tiết món", onBack = onBack)
             LoadingView()
@@ -69,7 +81,13 @@ fun MealDetailScreen(
 }
 
 @Composable
-private fun MealDetailContent(meal: Meal, servings: Int, onBack: () -> Unit) {
+private fun MealDetailContent(
+    meal: Meal,
+    servings: Int,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    onBack: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -100,6 +118,21 @@ private fun MealDetailContent(meal: Meal, servings: Int, onBack: () -> Unit) {
                 title = "",
                 onBack = onBack,
                 modifier = Modifier.padding(horizontal = 16.dp),
+                rightContent = {
+                    IconButton(
+                        onClick = onToggleFavorite,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(AppColors.Surface.copy(alpha = 0.9f)),
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = if (isFavorite) "Bỏ yêu thích" else "Thêm vào yêu thích",
+                            tint = if (isFavorite) AppColors.Orange else AppColors.Ink,
+                        )
+                    }
+                },
             )
         }
 

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import vn.edu.uth.mealmate.data.local.FavoritesStore
 import vn.edu.uth.mealmate.data.session.SessionManager
 import vn.edu.uth.mealmate.navigation.MealMateApp
 import vn.edu.uth.mealmate.ui.theme.MealMateTheme
@@ -12,6 +13,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SessionManager.init(applicationContext)
+        FavoritesStore.init(applicationContext)
         enableEdgeToEdge()
         setContent {
             MealMateTheme {

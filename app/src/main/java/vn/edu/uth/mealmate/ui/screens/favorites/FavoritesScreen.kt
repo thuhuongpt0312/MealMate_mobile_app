@@ -22,18 +22,29 @@ import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import vn.edu.uth.mealmate.data.sample.SampleData
+import androidx.lifecycle.viewmodel.compose.viewModel
 import vn.edu.uth.mealmate.ui.components.HeaderBar
+import vn.edu.uth.mealmate.ui.components.LoadingView
+import vn.edu.uth.mealmate.ui.components.MessageView
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.formatVnd
 
 @Composable
-fun FavoritesScreen(onBack: () -> Unit = {}) {
+fun FavoritesScreen(
+    onBack: () -> Unit = {},
+    onOpenMeal: (mealId: String) -> Unit = {},
+    vm: FavoritesViewModel = viewModel(),
+) {
+    val uiState by vm.uiState.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -48,20 +59,38 @@ fun FavoritesScreen(onBack: () -> Unit = {}) {
 
         Spacer(Modifier.height(10.dp))
 
+        val meals = when (val state = uiState) {
+            FavoritesUiState.Loading -> return@Column LoadingView()
+            is FavoritesUiState.Error -> return@Column MessageView(
+                title = "Không tải được món ăn",
+                message = state.message,
+                actionLabel = "Thử lại",
+                onAction = vm::load,
+            )
+            is FavoritesUiState.Success -> state.meals
+        }
+        if (meals.isEmpty()) {
+            MessageView(
+                title = "Chưa có món yêu thích",
+                message = "Bấm biểu tượng trái tim ở trang chi tiết món để lưu lại những món bạn thích.",
+            )
+            return@Column
+        }
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
             contentPadding = PaddingValues(bottom = 24.dp),
         ) {
-            items(SampleData.meals) { meal ->
+            items(meals, key = { it.id }) { meal ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(18.dp))
                         .background(AppColors.Surface)
                         .border(1.dp, AppColors.Line, RoundedCornerShape(18.dp))
-                        .clickable { }
+                        .clickable { onOpenMeal(meal.id) }
                         .padding(12.dp),
                 ) {
                     Column {
@@ -95,7 +124,7 @@ fun FavoritesScreen(onBack: () -> Unit = {}) {
                         Spacer(Modifier.height(2.dp))
 
                         Text(
-                            text = "${meal.minutes} phút",
+                            text = "${meal.minutes} phút · ${formatVnd(meal.pricePerServing)}",
                             fontSize = 12.sp,
                             color = AppColors.Muted,
                         )
