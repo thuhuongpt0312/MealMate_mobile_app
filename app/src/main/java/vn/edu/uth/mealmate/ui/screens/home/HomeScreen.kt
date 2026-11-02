@@ -34,6 +34,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +45,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import java.time.LocalDate
+import java.time.LocalTime
+import vn.edu.uth.mealmate.data.model.MealSlot
+import vn.edu.uth.mealmate.domain.displayName
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.budgetPercent
+import vn.edu.uth.mealmate.util.formatDateRange
+import vn.edu.uth.mealmate.util.formatFullDate
+import vn.edu.uth.mealmate.util.formatVnd
+import vn.edu.uth.mealmate.util.greeting
 
 @Composable
 fun HomeScreen(
@@ -52,7 +65,18 @@ fun HomeScreen(
     onNutrition: () -> Unit = {},
     onFavorites: () -> Unit = {},
     onCostStats: () -> Unit = {},
+    onOpenWeek: () -> Unit = {},
+    onOpenMeal: (mealId: String, servings: Int) -> Unit = { _, _ -> },
+    vm: HomeViewModel = viewModel(),
 ) {
+    val state by vm.uiState.collectAsState()
+    LaunchedEffect(Unit) { vm.load() }
+    val plan = state.plan
+    val nextMeal = state.nextMeal
+    val spent = plan?.totalCost ?: 0L
+    val percent = budgetPercent(spent, state.weeklyBudget)
+    val overBudget = state.weeklyBudget != null && spent > state.weeklyBudget!!
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -70,13 +94,13 @@ fun HomeScreen(
         ) {
             Column {
                 Text(
-                    text = "Thứ Ba, 12/03",
+                    text = formatFullDate(LocalDate.now()),
                     fontSize = 12.sp,
                     color = AppColors.Muted,
                     fontWeight = FontWeight.Medium,
                 )
                 Text(
-                    text = "Chào buổi sáng, Minh Anh",
+                    text = greeting(LocalTime.now().hour) + (state.userName?.let { ", ${displayName(it)}" } ?: ""),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.Ink,
@@ -151,7 +175,11 @@ fun HomeScreen(
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "7 ngày · 3 người · ngân sách 700.000đ",
+                    text = buildString {
+                        append("7 ngày")
+                        state.servings?.let { append(" · $it người") }
+                        state.weeklyBudget?.let { append(" · ngân sách ${formatVnd(it)}") }
+                    },
                     fontSize = 13.sp,
                     color = Color.White.copy(alpha = 0.8f),
                 )
@@ -199,19 +227,26 @@ fun HomeScreen(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = AppColors.Green,
-                modifier = Modifier.clickable { /* đi đến thực đơn tuần */ },
+                modifier = Modifier.clickable { onOpenWeek() },
             )
         }
 
         Spacer(Modifier.height(12.dp))
 
-        // Thẻ món ăn hôm nay
+        // Thẻ món ăn hôm nay: bữa sắp tới, chưa có thực đơn thì mời tạo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
                 .background(AppColors.Surface)
                 .border(1.dp, AppColors.Line, RoundedCornerShape(18.dp))
+                .clickable {
+                    when {
+                        nextMeal != null && plan != null -> onOpenMeal(nextMeal.id, plan.servings)
+                        plan != null -> onOpenWeek()
+                        else -> onCreatePlan()
+                    }
+                }
                 .padding(14.dp),
         ) {
             Row(
@@ -238,21 +273,35 @@ fun HomeScreen(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "BỮA TỐI · 18:30",
+                        text = when {
+                            nextMeal != null -> MealSlot.entries.find { it.name == nextMeal.slot }?.label?.uppercase() ?: "HÔM NAY"
+                            state.loading -> "ĐANG TẢI"
+                            else -> "HÔM NAY"
+                        },
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = AppColors.Green,
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "Cơm gà gừng",
+                        text = when {
+                            nextMeal != null -> nextMeal.name
+                            state.loading -> "…"
+                            plan != null -> "Hôm nay không có trong thực đơn"
+                            else -> "Bạn chưa có thực đơn"
+                        },
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = AppColors.Ink,
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "25 phút · 42.000đ/phần",
+                        text = when {
+                            nextMeal != null -> "${nextMeal.minutes} phút · ${formatVnd(nextMeal.pricePerServing)}/phần"
+                            plan != null -> "Xem thực đơn ${formatDateRange(plan.startDate, plan.endDate)}"
+                            state.error != null -> state.error.orEmpty()
+                            else -> "Chạm để tạo thực đơn tuần này"
+                        },
                         fontSize = 12.sp,
                         color = AppColors.Muted,
                     )
@@ -282,19 +331,26 @@ fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "650.000đ",
+                text = formatVnd(spent),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = AppColors.Ink,
             )
             LinearProgressIndicator(
-                progress = { 0.92f },
+                progress = { (percent / 100f).coerceIn(0f, 1f) },
                 modifier = Modifier
                     .width(100.dp)
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = AppColors.Green,
+                color = if (overBudget) AppColors.Orange else AppColors.Green,
                 trackColor = AppColors.Line,
+            )
+        }
+        if (state.weeklyBudget != null && plan != null) {
+            Text(
+                text = if (overBudget) "Vượt ngân sách ${formatVnd(spent - state.weeklyBudget!!)}" else "$percent% ngân sách ${formatVnd(state.weeklyBudget!!)}",
+                fontSize = 12.sp,
+                color = if (overBudget) AppColors.Orange else AppColors.Muted,
             )
         }
 

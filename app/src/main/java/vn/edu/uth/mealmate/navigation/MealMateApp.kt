@@ -143,6 +143,8 @@ fun MealMateApp() {
                     onNutrition = { nav.navigate(Routes.NUTRITION) },
                     onFavorites = { nav.navigate(Routes.FAVORITES) },
                     onCostStats = { nav.navigate(Routes.COST_STATS) },
+                    onOpenWeek = { nav.goToTab(Routes.MEAL_PLAN) },
+                    onOpenMeal = { mealId, servings -> nav.navigate(Routes.mealDetail(mealId, servings)) },
                 )
             }
             composable(Routes.CREATE_PLAN) {
