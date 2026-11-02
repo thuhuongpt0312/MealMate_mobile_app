@@ -30,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,12 +50,14 @@ import vn.edu.uth.mealmate.ui.theme.AppColors
 @Composable
 fun RegisterScreen(
     onRegister: () -> Unit = {},
+    onLogin: () -> Unit = onRegister,
     vm: AuthViewModel = viewModel(),
 ) {
-    var isLoginMode by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf("Nguyễn Minh Anh") }
-    var email by remember { mutableStateOf("minhanh@example.com") }
-    var password by remember { mutableStateOf("12345678") }
+    // rememberSaveable để xoay màn hình không mất chữ đang gõ (mật khẩu thì không lưu)
+    var isLoginMode by rememberSaveable { mutableStateOf(false) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
 
     val uiState by vm.uiState.collectAsState()
@@ -135,6 +138,7 @@ fun RegisterScreen(
                     Spacer(Modifier.height(6.dp))
                     OutlinedTextField(
                         value = name,
+                        placeholder = { Text("Nguyễn Minh Anh") },
                         onValueChange = { name = it },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
@@ -151,6 +155,7 @@ fun RegisterScreen(
                 Spacer(Modifier.height(6.dp))
                 OutlinedTextField(
                     value = email,
+                    placeholder = { Text("ban@example.com") },
                     onValueChange = { email = it },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -172,7 +177,7 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
-                    placeholder = { Text("ít nhất 8 ký tự") },
+                    placeholder = { Text("ít nhất 6 ký tự") },
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
@@ -209,7 +214,7 @@ fun RegisterScreen(
                         label = if (isLoginMode) "Đăng nhập" else "Tạo tài khoản",
                         onClick = {
                             if (isLoginMode) {
-                                vm.login(email.trim(), password, onSuccess = onRegister)
+                                vm.login(email.trim(), password, onSuccess = onLogin)
                             } else {
                                 vm.register(name.trim(), email.trim(), password, onSuccess = onRegister)
                             }

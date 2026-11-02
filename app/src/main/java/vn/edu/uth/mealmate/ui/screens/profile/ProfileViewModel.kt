@@ -24,10 +24,7 @@ class ProfileViewModel(
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    init {
-        loadProfile()
-    }
-
+    /** Màn hình gọi mỗi lần hiện ra (LaunchedEffect) để luôn thấy tùy chọn mới nhất. */
     fun loadProfile() {
         if (!repository.isLoggedIn) {
             _uiState.value = ProfileUiState.LoggedOut

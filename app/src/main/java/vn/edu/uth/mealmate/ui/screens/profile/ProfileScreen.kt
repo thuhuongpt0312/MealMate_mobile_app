@@ -19,12 +19,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ShoppingBag
@@ -34,6 +34,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,15 +45,26 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import vn.edu.uth.mealmate.data.session.SessionManager
+import androidx.lifecycle.viewmodel.compose.viewModel
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.formatVnd
 
 @Composable
 fun ProfileScreen(
     onNotificationSettings: () -> Unit = {},
     onCostStats: () -> Unit = {},
     onImageCredits: () -> Unit = {},
+    onEditPreferences: () -> Unit = {},
+    vm: ProfileViewModel = viewModel(),
 ) {
+    val uiState by vm.uiState.collectAsState()
+    // Mỗi lần mở tab thì lấy lại thông tin, vì tùy chọn có thể vừa được sửa ở màn Thiết lập
+    LaunchedEffect(Unit) { vm.loadProfile() }
+    val loaded = uiState as? ProfileUiState.Success
+    val user = loaded?.user
+    val prefs = loaded?.preferences
+    val placeholder = if (uiState is ProfileUiState.Loading) "Đang tải…" else "—"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,6 +86,16 @@ fun ProfileScreen(
             fontSize = 13.sp,
             color = AppColors.Muted,
         )
+
+        (uiState as? ProfileUiState.Error)?.let { error ->
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = "${error.message} · Chạm để thử lại",
+                fontSize = 13.sp,
+                color = AppColors.Orange,
+                modifier = Modifier.clickable { vm.loadProfile() },
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 
@@ -109,14 +133,14 @@ fun ProfileScreen(
 
                     Column {
                         Text(
-                            text = "Nguyễn Minh Anh",
+                            text = user?.name ?: placeholder,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.Ink,
                         )
                         Spacer(Modifier.height(2.dp))
                         Text(
-                            text = "minhanh@example.com",
+                            text = user?.email.orEmpty(),
                             fontSize = 12.sp,
                             color = AppColors.Muted,
                         )
@@ -124,7 +148,7 @@ fun ProfileScreen(
                 }
 
                 OutlinedButton(
-                    onClick = { },
+                    onClick = onEditPreferences,
                     shape = RoundedCornerShape(12.dp),
                 ) {
                     Text("Sửa", fontSize = 12.sp, color = AppColors.GreenDark, fontWeight = FontWeight.SemiBold)
@@ -162,7 +186,7 @@ fun ProfileScreen(
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "Ăn uống cân bằng mỗi ngày",
+                    text = prefs?.goal ?: placeholder,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -171,7 +195,8 @@ fun ProfileScreen(
                 Spacer(Modifier.height(4.dp))
 
                 Text(
-                    text = "Ưu tiên đa dạng, lành mạnh và phù hợp gia đình.",
+                    text = prefs?.avoid?.takeIf { it.isNotEmpty() }?.let { "Tránh: ${it.joinToString(", ")}" }
+                        ?: "Ưu tiên đa dạng, lành mạnh và phù hợp gia đình.",
                     fontSize = 12.sp,
                     color = Color.White.copy(alpha = 0.8f),
                 )
@@ -192,26 +217,26 @@ fun ProfileScreen(
             ProfileMenuItem(
                 icon = Icons.Outlined.Person,
                 title = "Thông tin cá nhân",
-                sub = "Nguyễn Minh Anh",
-                onClick = { },
+                sub = user?.name ?: placeholder,
+                onClick = onEditPreferences,
             )
             ProfileMenuItem(
                 icon = Icons.Outlined.FavoriteBorder,
                 title = "Mục tiêu ăn uống",
-                sub = "Cân bằng",
-                onClick = { },
+                sub = prefs?.goal ?: placeholder,
+                onClick = onEditPreferences,
             )
             ProfileMenuItem(
                 icon = Icons.Outlined.Home,
                 title = "Số người trong nhà",
-                sub = "3 người",
-                onClick = { },
+                sub = prefs?.let { "${it.servings} người" } ?: placeholder,
+                onClick = onEditPreferences,
             )
             ProfileMenuItem(
                 icon = Icons.Outlined.ShoppingBag,
                 title = "Mức chi tiêu",
-                sub = "Vừa phải",
-                onClick = { },
+                sub = prefs?.let { "${formatVnd(it.weeklyBudget)}/tuần" } ?: placeholder,
+                onClick = onEditPreferences,
             )
             ProfileMenuItem(
                 icon = Icons.Outlined.Notifications,
@@ -232,7 +257,7 @@ fun ProfileScreen(
             ProfileMenuItem(
                 icon = Icons.AutoMirrored.Outlined.Logout,
                 title = "Đăng xuất",
-                onClick = { SessionManager.clear() },
+                onClick = vm::logout,
                 isDestructive = true,
             )
         }

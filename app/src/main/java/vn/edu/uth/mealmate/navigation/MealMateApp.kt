@@ -113,12 +113,25 @@ fun MealMateApp() {
                 })
             }
             composable(Routes.REGISTER) {
-                RegisterScreen(onRegister = { nav.navigate(Routes.SETUP) })
+                RegisterScreen(
+                    onRegister = { nav.navigate(Routes.SETUP) },
+                    // Tài khoản cũ đã có tùy chọn, vào thẳng Trang chủ
+                    onLogin = { nav.navigate(Routes.HOME) { popUpTo(nav.graph.id) { inclusive = true } } },
+                )
             }
             composable(Routes.SETUP) {
-                SetupScreen(onFinish = {
-                    nav.navigate(Routes.HOME) { popUpTo(Routes.REGISTER) { inclusive = true } }
-                })
+                // Mở từ màn Cá nhân để sửa tùy chọn thì lưu xong quay lại, còn lần đầu đăng ký thì vào Trang chủ
+                val editing = nav.previousBackStackEntry?.destination?.route == Routes.PROFILE
+                SetupScreen(
+                    onFinish = {
+                        if (editing) {
+                            nav.popBackStack()
+                        } else {
+                            nav.navigate(Routes.HOME) { popUpTo(nav.graph.id) { inclusive = true } }
+                        }
+                    },
+                    onBack = if (editing) ({ nav.popBackStack() }) else null,
+                )
             }
 
             // --- Trải nghiệm chính ---
@@ -210,6 +223,7 @@ fun MealMateApp() {
                     onNotificationSettings = { nav.navigate(Routes.NOTIFICATION_SETTINGS) },
                     onCostStats = { nav.navigate(Routes.COST_STATS) },
                     onImageCredits = { nav.navigate(Routes.IMAGE_CREDITS) },
+                    onEditPreferences = { nav.navigate(Routes.SETUP) },
                 )
             }
             composable(Routes.IMAGE_CREDITS) { ImageCreditsScreen(onBack = { nav.popBackStack() }) }
