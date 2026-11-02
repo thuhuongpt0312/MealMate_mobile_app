@@ -42,7 +42,7 @@ backend/
 
 | Method | Đường dẫn | Màn hình | Mô tả |
 |---|---|---|---|
-| GET | `/api/health` | | Kiểm tra server |
+| GET | `/` , `/api/health` | | Kiểm tra server (`/health` chuyển hướng sang `/api/health`) |
 | POST | `/api/auth/register` | S02 | `{ name, email, password }` → `{ user, token, expiresAt }` |
 | POST | `/api/auth/login` | S02 | `{ email, password }` → `{ user, token, expiresAt }` |
 | POST | `/api/auth/logout` | S16 | Hủy token hiện tại |
@@ -52,7 +52,7 @@ backend/
 | PATCH / DELETE | `/api/me/pantry/:id` | S10 | Sửa / xóa nguyên liệu trong tủ |
 | GET | `/api/recipes?slot=&q=&maxPrice=` | | Món đã duyệt; `slot` = `BREAKFAST` `LUNCH` `DINNER` `SNACK` |
 | GET | `/api/recipes/:id` | S08 | Chi tiết món |
-| POST | `/api/meal-plans` | S05–S07 | `{ startDate?, servings? }` → thực đơn 7 ngày, đồng thời tạo danh sách mua sắm |
+| POST | `/api/meal-plans` | S05–S07 | `{ startDate?, servings?, days? }` → thực đơn `days` ngày (1–7, mặc định 7), đồng thời tạo danh sách mua sắm đã trừ tủ bếp |
 | GET | `/api/meal-plans` | S12b | Lịch sử thực đơn, mới nhất trước |
 | GET | `/api/meal-plans/:id` | S07 | Thực đơn kèm `recipes` (tra theo id món) |
 | GET / POST | `/api/meal-plans/:id/shopping-list` | S09 | `{ items, total, remaining }`; POST thêm món tự nhập |
@@ -93,4 +93,4 @@ route placeholder dạng ghi trả **501** kèm `expectedBody` mô tả body d�
 - Lưu dữ liệu thật (SQLite/PostgreSQL hoặc MongoDB) – chỉ cần viết lại `src/data/store.js`.
 - Thay `mealPlanner` bằng gọi API AI.
 - Hoàn thiện các route placeholder ở trên.
-- Nối app Android vào API (Retrofit/Ktor client) thay cho `SampleData`.
+- API cho món yêu thích (app đang lưu tạm trên máy) và cho thống kê dinh dưỡng, chi phí (S11, S15).

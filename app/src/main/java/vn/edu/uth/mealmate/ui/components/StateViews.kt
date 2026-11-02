@@ -30,10 +30,10 @@ fun LoadingView(modifier: Modifier = Modifier) {
 @Composable
 fun MessageView(
     title: String,
+    modifier: Modifier = Modifier,
     message: String? = null,
     actionLabel: String? = null,
     onAction: () -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxWidth().padding(vertical = 40.dp),

@@ -9,9 +9,12 @@ app/src/main/java/vn/edu/uth/mealmate/
 ├── navigation/            Routes.kt, MealMateApp.kt (NavHost + thanh đáy)
 ├── data/
 │   ├── model/             Models.kt (Meal, Ingredient, PantryItem, ShoppingItem...)
-│   ├── sample/            SampleData.kt (dữ liệu mẫu tiếng Việt, VNĐ)
-│   └── (sau này) local/, repository/   Room, DataStore
-├── domain/                ShoppingListBuilder.kt (logic cốt lõi, có unit test)
+│   ├── remote/            ApiClient (Retrofit, URL lấy từ BuildConfig), MealMateApi, DTO và hàm đổi lỗi sang tiếng Việt
+│   ├── repository/        MealMateRepository – nơi duy nhất ViewModel lấy dữ liệu, trả Result
+│   ├── session/           SessionManager – lưu token, 401 thì tự đăng xuất
+│   ├── local/             FavoritesStore – món yêu thích lưu trên máy
+│   └── sample/            SampleData.kt (dữ liệu mẫu, dùng cho test và preview)
+├── domain/                ShoppingListBuilder, nhóm danh sách mua sắm, chọn bữa theo giờ (có unit test)
 ├── notifications/         MealMateNotifier.kt (thông báo nhắc nhở)
 ├── util/                  Format.kt (formatVnd)
 └── ui/
@@ -20,7 +23,11 @@ app/src/main/java/vn/edu/uth/mealmate/
     └── screens/           onboarding, auth, setup, home, plan, mealplan, shopping,
                            pantry, nutrition, favorites, history, notifications, stats, profile
 ```
-Mỗi màn hình sau này gồm `XScreen.kt` (giao diện) và `XViewModel.kt` (trạng thái, dùng `StateFlow`).
+Mỗi màn hình gồm `XScreen.kt` (giao diện) và `XViewModel.kt` (trạng thái, dùng `StateFlow`).
+ViewModel chỉ gọi `MealMateRepository`, không gọi thẳng `ApiClient`.
+
+**Thực đơn đang chọn:** `MealMateRepository.activePlanId` là thực đơn mà tab Thực đơn (S07) và Mua sắm (S09) cùng hiển thị.
+Tạo thực đơn mới hoặc chọn một tuần ở Lịch sử (S12b) sẽ đổi giá trị này, các ViewModel đang theo dõi tự tải lại.
 
 **Backend** nằm ở thư mục `backend/` (Node.js + Express), phục vụ cả app và trang quản trị.
 Danh sách API và cách chạy: [`backend/README.md`](../backend/README.md).
@@ -46,7 +53,7 @@ Chạy test: `./gradlew test` hoặc chuột phải `ShoppingListBuilderTest` �
 ## 4. Quy ước
 - Tên composable màn hình kết thúc bằng `Screen`; tham số điều hướng truyền qua lambda (`onBack`, `onCreatePlan`...), không truyền `NavController` xuống màn hình con.
 - Chữ hiển thị đưa vào `res/values/strings.xml` khi hoàn thiện (hiện đang viết trực tiếp cho nhanh).
-- Tiền luôn dùng `formatVnd(...)`, không tự ghép chuỗi.
+- Tiền luôn dùng `formatVnd(...)`, số lượng dùng `formatQuantity(...)`, ngày dùng các hàm trong `util/Dates.kt` – không tự ghép chuỗi.
 - Màu lấy từ `AppColors`, không viết mã màu trực tiếp trong màn hình.
 
 ## 5. Design tokens (ước lượng, cần đối chiếu Figma Dev Mode)

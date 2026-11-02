@@ -28,7 +28,24 @@
 cd backend
 npm install
 npm run dev   # http://localhost:3000, từ emulator gọi http://10.0.2.2:3000
+npm test      # test API và logic tạo thực đơn
 ```
+
+## Chạy app Android
+1. Bật backend như trên (app lấy toàn bộ dữ liệu từ API).
+2. Mở thư mục gốc bằng Android Studio, chọn emulator rồi bấm **Run**, hoặc dùng terminal:
+   ```bash
+   ./gradlew installDebug   # cài lên emulator đang mở
+   ./gradlew test           # unit test (định dạng tiền/ngày, nhóm mua sắm, ShoppingListBuilder)
+   ```
+3. Chạy trên **điện thoại thật** (cùng Wi-Fi với máy tính): truyền IP LAN của máy chạy backend
+   ```bash
+   ./gradlew installDebug -Pmealmate.apiBaseUrl=http://192.168.1.10:3000/api/
+   ```
+
+Lưu ý:
+- Backend lưu dữ liệu trong bộ nhớ, tắt server là mất tài khoản. Khi đó app tự đăng xuất (server trả 401) và quay về màn đăng nhập.
+- Bản debug mới cho phép gọi HTTP và log request; bản release chặn HTTP không mã hóa.
 
 ## Tiến độ theo tuần
 | Tuần | Nội dung | Trạng thái |

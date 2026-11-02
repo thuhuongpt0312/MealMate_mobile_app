@@ -10,3 +10,5 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+# DTO của Retrofit được Gson đọc/ghi bằng reflection: giữ nguyên tên field để khớp JSON từ backend
+-keep class vn.edu.uth.mealmate.data.remote.** { *; }
