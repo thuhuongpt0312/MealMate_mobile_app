@@ -35,6 +35,7 @@ import vn.edu.uth.mealmate.ui.screens.history.HistoryScreen
 import vn.edu.uth.mealmate.ui.screens.home.HomeScreen
 import vn.edu.uth.mealmate.ui.screens.mealplan.MealDetailScreen
 import vn.edu.uth.mealmate.ui.screens.mealplan.MealPlanScreen
+import vn.edu.uth.mealmate.ui.screens.notifications.NotificationMockupScreen
 import vn.edu.uth.mealmate.ui.screens.notifications.NotificationSettingsScreen
 import vn.edu.uth.mealmate.ui.screens.notifications.NotificationsScreen
 import vn.edu.uth.mealmate.ui.screens.nutrition.NutritionScreen
@@ -217,10 +218,17 @@ fun MealMateApp() {
                 NotificationsScreen(
                     onBack = { nav.popBackStack() },
                     onSettings = { nav.navigate(Routes.NOTIFICATION_SETTINGS) },
+                    onMockup = { nav.navigate(Routes.NOTIFICATION_MOCKUP) },
                 )
             }
             composable(Routes.NOTIFICATION_SETTINGS) {
-                NotificationSettingsScreen(onBack = { nav.popBackStack() })
+                NotificationSettingsScreen(
+                    onBack = { nav.popBackStack() },
+                    onMockup = { nav.navigate(Routes.NOTIFICATION_MOCKUP) },
+                )
+            }
+            composable(Routes.NOTIFICATION_MOCKUP) {
+                NotificationMockupScreen(onBack = { nav.popBackStack() })
             }
 
             // --- Thống kê, tài khoản ---

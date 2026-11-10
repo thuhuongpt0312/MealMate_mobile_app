@@ -1,5 +1,6 @@
 package vn.edu.uth.mealmate.ui.screens.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -46,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import vn.edu.uth.mealmate.ui.components.MealMateBrandBadge
 import vn.edu.uth.mealmate.ui.components.PrimaryButton
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.MealImages
 
 @Composable
 fun RegisterScreen(
@@ -74,28 +78,19 @@ fun RegisterScreen(
                 .weight(0.38f)
                 .background(AppColors.GreenDark),
         ) {
-            // Placeholder hình ảnh món ăn đặc trưng
+            Image(
+                painter = painterResource(MealImages.BunThitNuong),
+                contentDescription = "Món ngon dinh dưỡng mỗi ngày",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            // Lớp phủ nhẹ tăng độ tương phản cho badge
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(AppColors.GreenSoft.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Outlined.Restaurant,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.6f),
-                        modifier = Modifier.size(64.dp),
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = "Món ngon dinh dưỡng mỗi ngày",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 13.sp,
-                    )
-                }
-            }
+                    .background(Color.Black.copy(alpha = 0.2f)),
+            )
 
             MealMateBrandBadge(
                 modifier = Modifier

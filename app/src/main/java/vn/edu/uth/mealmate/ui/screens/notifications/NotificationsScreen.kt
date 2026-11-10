@@ -26,7 +26,9 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,6 +50,7 @@ import vn.edu.uth.mealmate.ui.theme.AppColors
 fun NotificationsScreen(
     onBack: () -> Unit = {},
     onSettings: () -> Unit = {},
+    onMockup: () -> Unit = {},
 ) {
     var selectedFilter by remember { mutableStateOf("Tất cả") }
     val filters = listOf("Tất cả", "Bữa ăn", "Mua sắm", "Ngân sách")
@@ -63,13 +66,19 @@ fun NotificationsScreen(
             title = "Thông báo",
             onBack = onBack,
             rightContent = {
-                Text(
-                    text = "Đánh dấu đã đọc tất cả",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = AppColors.Green,
-                    modifier = Modifier.clickable { },
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Đánh dấu đã đọc tất cả",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = AppColors.Green,
+                        modifier = Modifier.clickable { },
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(onClick = onSettings, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Outlined.Settings, contentDescription = "Cài đặt thông báo", tint = AppColors.Ink, modifier = Modifier.size(18.dp))
+                    }
+                }
             },
         )
 

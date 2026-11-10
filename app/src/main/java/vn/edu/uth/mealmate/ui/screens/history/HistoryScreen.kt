@@ -1,5 +1,6 @@
 package vn.edu.uth.mealmate.ui.screens.history
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +30,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +41,7 @@ import vn.edu.uth.mealmate.data.remote.MealPlanDto
 import vn.edu.uth.mealmate.ui.components.LoadingView
 import vn.edu.uth.mealmate.ui.components.MessageView
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.MealImages
 import vn.edu.uth.mealmate.util.formatDateRange
 import vn.edu.uth.mealmate.util.formatVnd
 import vn.edu.uth.mealmate.util.parseApiDate
@@ -116,15 +120,19 @@ private fun HistoryContent(plans: List<MealPlanDto>, onOpen: (MealPlanDto) -> Un
                 .clip(RoundedCornerShape(20.dp))
                 .background(AppColors.Surface)
                 .border(1.dp, AppColors.Line, RoundedCornerShape(20.dp))
-                .clickable { onOpen(latest) }
-                .padding(18.dp),
+                .clickable { onOpen(latest) },
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
+            Column {
+                Image(
+                    painter = painterResource(MealImages.ComGiaDinh),
+                    contentDescription = "Thực đơn gần nhất",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(130.dp),
+                )
+
+                Column(modifier = Modifier.padding(16.dp)) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
@@ -142,38 +150,23 @@ private fun HistoryContent(plans: List<MealPlanDto>, onOpen: (MealPlanDto) -> Un
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        text = "Thực đơn ${latest.days.size} ngày",
-                        fontSize = 16.sp,
+                        text = "Tuần gia đình cân bằng",
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = AppColors.Ink,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = "${formatDateRange(latest.startDate, latest.endDate)} · ${latest.servings} người",
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         color = AppColors.Muted,
                     )
-                    Spacer(Modifier.height(2.dp))
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = "${formatVnd(latest.totalCost)} · ${latest.days.sumOf { it.meals.size }} bữa",
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = AppColors.GreenDark,
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(AppColors.GreenSoft),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Restaurant,
-                        contentDescription = null,
-                        tint = AppColors.Green,
-                        modifier = Modifier.size(32.dp),
                     )
                 }
             }

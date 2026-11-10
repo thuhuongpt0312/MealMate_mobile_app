@@ -35,7 +35,10 @@ import vn.edu.uth.mealmate.ui.components.HeaderBar
 import vn.edu.uth.mealmate.ui.theme.AppColors
 
 @Composable
-fun NotificationSettingsScreen(onBack: () -> Unit = {}) {
+fun NotificationSettingsScreen(
+    onBack: () -> Unit = {},
+    onMockup: () -> Unit = {},
+) {
     var mealReminderOn by remember { mutableStateOf(true) }
     var selectedMealLeadTime by remember { mutableIntStateOf(30) }
 
@@ -158,6 +161,24 @@ fun NotificationSettingsScreen(onBack: () -> Unit = {}) {
         }
 
         Spacer(Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "Xem mẫu thông báo trên màn hình khóa (S13b)",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors.Green,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onMockup() }
+                    .padding(8.dp),
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
 
         Text(
             text = "Bạn có thể thay đổi bất cứ lúc nào.",

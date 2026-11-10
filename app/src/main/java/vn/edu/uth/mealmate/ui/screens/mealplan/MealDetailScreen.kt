@@ -1,5 +1,6 @@
 package vn.edu.uth.mealmate.ui.screens.mealplan
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +50,7 @@ import vn.edu.uth.mealmate.ui.components.HeaderBar
 import vn.edu.uth.mealmate.ui.components.LoadingView
 import vn.edu.uth.mealmate.ui.components.MessageView
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.MealImages
 import vn.edu.uth.mealmate.util.formatQuantity
 import vn.edu.uth.mealmate.util.formatVnd
 
@@ -97,22 +101,23 @@ private fun MealDetailContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
+                .height(240.dp)
                 .background(AppColors.GreenDark),
         ) {
+            Image(
+                painter = painterResource(MealImages.forMeal(meal.id)),
+                contentDescription = meal.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            // Dim overlay at top for button visibility
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(AppColors.GreenSoft.copy(alpha = 0.25f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Restaurant,
-                    contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.6f),
-                    modifier = Modifier.size(72.dp),
-                )
-            }
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .background(Color.Black.copy(alpha = 0.2f)),
+            )
 
             HeaderBar(
                 title = "",

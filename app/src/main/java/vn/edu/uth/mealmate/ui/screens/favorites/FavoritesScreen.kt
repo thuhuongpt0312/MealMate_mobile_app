@@ -1,5 +1,6 @@
 package vn.edu.uth.mealmate.ui.screens.favorites
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,6 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +38,7 @@ import vn.edu.uth.mealmate.ui.components.HeaderBar
 import vn.edu.uth.mealmate.ui.components.LoadingView
 import vn.edu.uth.mealmate.ui.components.MessageView
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.MealImages
 import vn.edu.uth.mealmate.util.formatVnd
 
 @Composable
@@ -94,22 +98,16 @@ fun FavoritesScreen(
                         .padding(12.dp),
                 ) {
                     Column {
-                        // Food Image placeholder
-                        Box(
+                        // Food Image
+                        Image(
+                            painter = painterResource(MealImages.forMeal(meal.id)),
+                            contentDescription = meal.name,
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(110.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(AppColors.GreenSoft),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Restaurant,
-                                contentDescription = null,
-                                tint = AppColors.Green,
-                                modifier = Modifier.size(36.dp),
-                            )
-                        }
+                                .clip(RoundedCornerShape(14.dp)),
+                        )
 
                         Spacer(Modifier.height(10.dp))
 

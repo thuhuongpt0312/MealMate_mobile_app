@@ -1,5 +1,6 @@
 package vn.edu.uth.mealmate.ui.screens.mealplan
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +49,7 @@ import vn.edu.uth.mealmate.ui.components.LoadingView
 import vn.edu.uth.mealmate.ui.components.MessageView
 import vn.edu.uth.mealmate.ui.components.PrimaryButton
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.MealImages
 import vn.edu.uth.mealmate.util.budgetPercent
 import vn.edu.uth.mealmate.util.formatDateRange
 import vn.edu.uth.mealmate.util.formatVnd
@@ -243,6 +247,7 @@ private fun PlanContent(
     day?.meals.orEmpty().forEach { mealId ->
         val recipe = plan.recipes?.get(mealId)
         MealCardItem(
+            mealId = mealId,
             slotName = recipe?.slot?.let { slot -> MealSlot.entries.find { it.name == slot }?.label }?.uppercase() ?: "MÓN ĂN",
             title = recipe?.name ?: mealId,
             subtitle = recipe?.let { "${it.minutes} phút · ${formatVnd(it.pricePerServing)}/phần" }.orEmpty(),
@@ -257,6 +262,7 @@ private fun PlanContent(
 
 @Composable
 private fun MealCardItem(
+    mealId: String,
     slotName: String,
     title: String,
     subtitle: String,
@@ -275,20 +281,14 @@ private fun MealCardItem(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
+            Image(
+                painter = painterResource(MealImages.forMeal(mealId)),
+                contentDescription = title,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(52.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(AppColors.GreenSoft),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Restaurant,
-                    contentDescription = null,
-                    tint = AppColors.Green,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
+                    .clip(RoundedCornerShape(12.dp)),
+            )
 
             Spacer(Modifier.width(12.dp))
 

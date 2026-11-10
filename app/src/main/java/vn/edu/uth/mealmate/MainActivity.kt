@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import vn.edu.uth.mealmate.data.local.FavoritesStore
 import vn.edu.uth.mealmate.data.session.SessionManager
 import vn.edu.uth.mealmate.navigation.MealMateApp
+import vn.edu.uth.mealmate.notifications.MealMateNotifier
 import vn.edu.uth.mealmate.ui.theme.MealMateTheme
 
 class MainActivity : ComponentActivity() {
@@ -14,6 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         SessionManager.init(applicationContext)
         FavoritesStore.init(applicationContext)
+        MealMateNotifier.initChannels(applicationContext)
         enableEdgeToEdge()
         setContent {
             MealMateTheme {

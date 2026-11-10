@@ -16,6 +16,7 @@ object Routes {
     const val HISTORY = "history"                  // S12b
     const val NOTIFICATIONS = "notifications"      // S13
     const val NOTIFICATION_SETTINGS = "notification_settings" // S14
+    const val NOTIFICATION_MOCKUP = "notification_mockup" // S13b
     const val COST_STATS = "cost_stats"            // S15
     const val PROFILE = "profile"                  // S16
     const val IMAGE_CREDITS = "image_credits"      // Nguồn hình ảnh

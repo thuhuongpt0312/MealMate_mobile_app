@@ -1,5 +1,6 @@
 package vn.edu.uth.mealmate.ui.screens.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -42,6 +43,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,6 +54,7 @@ import java.time.LocalTime
 import vn.edu.uth.mealmate.data.model.MealSlot
 import vn.edu.uth.mealmate.domain.displayName
 import vn.edu.uth.mealmate.ui.theme.AppColors
+import vn.edu.uth.mealmate.util.MealImages
 import vn.edu.uth.mealmate.util.budgetPercent
 import vn.edu.uth.mealmate.util.formatDateRange
 import vn.edu.uth.mealmate.util.formatFullDate
@@ -145,66 +149,83 @@ fun HomeScreen(
                 .background(AppColors.GreenDark)
                 .padding(20.dp),
         ) {
-            Column {
-                // Badge
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White.copy(alpha = 0.15f))
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    // Badge
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White.copy(alpha = 0.15f))
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                    ) {
+                        Text(
+                            text = "TUẦN MỚI THẬT NHẸ NHÀNG",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFA3E2BC),
+                            letterSpacing = 0.5.sp,
+                        )
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
                     Text(
-                        text = "TUẦN MỚI THẬT NHẸ NHÀNG",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFA3E2BC),
-                        letterSpacing = 0.5.sp,
+                        text = "Ăn ngon mà\nchẳng cần đắn\nđo.",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White,
+                        lineHeight = 30.sp,
                     )
-                }
 
-                Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(8.dp))
 
-                Text(
-                    text = "Ăn ngon mà\nchẳng cần đắn\nđo.",
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
-                    lineHeight = 32.sp,
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                Text(
-                    text = buildString {
-                        append("7 ngày")
-                        state.servings?.let { append(" · $it người") }
-                        state.weeklyBudget?.let { append(" · ngân sách ${formatVnd(it)}") }
-                    },
-                    fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.8f),
-                )
-
-                Spacer(Modifier.height(16.dp))
-
-                Button(
-                    onClick = onCreatePlan,
-                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Surface),
-                    shape = RoundedCornerShape(20.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = null,
-                        tint = AppColors.GreenDark,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Spacer(Modifier.width(6.dp))
                     Text(
-                        text = "Tạo thực đơn",
-                        color = AppColors.GreenDark,
-                        fontWeight = FontWeight.Bold,
+                        text = buildString {
+                            append("7 ngày")
+                            state.servings?.let { append(" · $it người") }
+                            state.weeklyBudget?.let { append(" · ngân sách ${formatVnd(it)}") }
+                        },
                         fontSize = 13.sp,
+                        color = Color.White.copy(alpha = 0.8f),
                     )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    Button(
+                        onClick = onCreatePlan,
+                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.Surface),
+                        shape = RoundedCornerShape(20.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = null,
+                            tint = AppColors.GreenDark,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "Tạo thực đơn",
+                            color = AppColors.GreenDark,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                        )
+                    }
                 }
+
+                Spacer(Modifier.width(12.dp))
+
+                Image(
+                    painter = painterResource(MealImages.ComGaGung),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(RoundedCornerShape(18.dp)),
+                )
             }
         }
 
@@ -254,20 +275,14 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Dish thumbnail
-                Box(
+                Image(
+                    painter = painterResource(MealImages.forMeal(nextMeal?.id)),
+                    contentDescription = nextMeal?.name ?: "Món ăn",
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(54.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(AppColors.GreenSoft),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Restaurant,
-                        contentDescription = null,
-                        tint = AppColors.Green,
-                        modifier = Modifier.size(28.dp),
-                    )
-                }
+                        .clip(RoundedCornerShape(12.dp)),
+                )
 
                 Spacer(Modifier.width(14.dp))
 
