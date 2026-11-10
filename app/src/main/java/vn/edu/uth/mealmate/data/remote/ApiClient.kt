@@ -8,7 +8,6 @@ import vn.edu.uth.mealmate.BuildConfig
 import vn.edu.uth.mealmate.data.session.SessionManager
 
 object ApiClient {
-    const val API_BASE_URL: String = "http://0.0.0.0:3000/api/"
     /** Lấy từ BuildConfig (xem app/build.gradle.kts), luôn có dấu / ở cuối. */
     val BASE_URL: String = BuildConfig.API_BASE_URL
 

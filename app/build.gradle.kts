@@ -18,9 +18,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Địa chỉ backend.
+        // Địa chỉ backend. Mặc định 10.0.2.2 là localhost của máy tính khi chạy trên emulator.
         // Chạy trên điện thoại thật: ./gradlew installDebug -Pmealmate.apiBaseUrl=http://192.168.1.10:3000/api/
-        val apiBaseUrl = providers.gradleProperty("mealmate.apiBaseUrl").getOrElse("http://0.0.0.0:3000/api/")
+        val apiBaseUrl = providers.gradleProperty("mealmate.apiBaseUrl").getOrElse("http://10.0.2.2:3000/api/")
         buildConfigField("String", "API_BASE_URL", "\"${apiBaseUrl.trimEnd('/')}/\"")
     }
 
